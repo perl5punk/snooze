@@ -4,7 +4,7 @@
   "description": "it does stuff later",
   "main": "snooze.lambda.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "grunt mochaTest"
   },
   "repository": {
     "type": "git",

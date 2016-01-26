@@ -40,7 +40,6 @@ describe('Snooze Adding', function () {
             "timestamp": 1453841849
         }, ctx);
 
-        //Captures the response and/or errors
         ctx.Promise
             .then(function (res) {
                 response = res;
