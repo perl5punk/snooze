@@ -1,0 +1,33 @@
+{
+  "name": "snooze",
+  "version": "1.0.0",
+  "description": "it does stuff later",
+  "main": "snooze.lambda.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bombbomb/snooze.git"
+  },
+  "author": "pmcdavid",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bombbomb/snooze/issues"
+  },
+  "homepage": "https://github.com/bombbomb/snooze",
+  "dependencies": {
+    "aws-sdk": "^2.2.32",
+    "dynamodb-doc": "^1.0.0"
+  },
+  "devDependencies": {
+    "aws-lambda-mock-context": "^1.1.0",
+    "chai": "^3.4.1",
+    "dynalite": "^0.17.3",
+    "grunt": "^0.4.5",
+    "grunt-aws-lambda": "^0.11.0",
+    "grunt-mocha-test": "^0.12.7",
+    "mocha": "^2.4.1",
+    "proxyquire": "^1.7.3"
+  }
+}
