@@ -34,9 +34,6 @@ describe('DynamoSetup', function () {
     // let it know that an   async operation has completed before running the rest
     // of the tests, 2000ms is the default timeout though
     before(function (done) {
-        //This fires the event as if a Lambda call was being sent in
-        this.timeout(60000);
-
         var setup = function() {
             snooze.handler({
                 "method": "add",
@@ -121,37 +118,36 @@ describe('AddTask', function() {
 
 });
 
-//describe('SeekTask', function() {
-//    var ctx = context();
-//    var response = null;
-//    var returnedError = null;
-//
-//    before(function(done) {
-//
-//        ctx = context();
-//        ctx.Promise
-//            .then(function (res) {
-//                response = res;
-//                done();
-//            })
-//            .catch(function (err) {
-//                returnedError = err;
-//                done();
-//            });
-//
-//        snooze.handler({
-//            "method": "add",
-//            "url": "https://yahoo.com",
-//            "timestamp": 1453841849
-//        }, ctx);
-//    });
-//
-//    describe('Result', function () {
-//        it('It should have taken good values', function (done) {
-//            expect(response).to.be.a('object');
-//            expect(returnedError).to.equal(null);
-//            done();
-//        });
-//    });
-//
-//});
+describe('SeekTask', function() {
+    var ctx = context();
+    var response = null;
+    var returnedError = null;
+
+    before(function(done) {
+        this.timeout(15000);
+
+        ctx = context();
+        ctx.Promise
+            .then(function (res) {
+                response = res;
+                done();
+            })
+            .catch(function (err) {
+                returnedError = err;
+                done();
+            });
+
+        snooze.handler({
+            "maxSeekRuntime": 1000
+        }, ctx);
+    });
+
+    describe('Result', function () {
+        it('It should have taken good values', function (done) {
+            expect(response).to.be.a('array');
+            expect(response).to.have.length(1);
+            done();
+        });
+    });
+
+});

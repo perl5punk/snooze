@@ -22,11 +22,8 @@ exports.handler = function(event, context) {
                 context.succeed(event);
             }
         });
-    } else if (event.method === 'run') {
-        runTask(context, event.url, event.ts);
-    }
-    else {
-        seekTasks(context, function(err, data) {
+    } else {
+        runTasks(event.maxSeekRuntime, context, function(err, data) {
             if (err) {
                 console.log(err);
                 initDynamoIfNeeded(err, context);
@@ -37,22 +34,27 @@ exports.handler = function(event, context) {
     }
 };
 
-function runTask(context, url, ts) {
-    console.log('UPDATE1');
-    updateStatus(context, url, ts, 2, function(err, data) {
-        console.log(err);
-        console.log('callurl');
-        callUrl(context, url, function(res) {
-            console.log('callurlgood');
+function runTask(tasksCompletedArray, url, ts) {
+    console.log('running Task: ' + url);
+
+    updateStatus(url, ts, 2, function(err, data) {
+        if (err) {
+            console.log(err);
+            return;
+        }
+        console.log('status updated, now calling ' + url);
+
+        callUrl(url, function(res) {
+            console.log('call url good');
             logResponse(context, url, ts, res, function() {
-                updateStatus(context, url, ts, 3, function() {
-                    context.done();
+                updateStatus(url, ts, 3, function(err, data) {
+                    tasksCompletedArray.push({ url: url, ts: ts });
                 });
             });
         }, function() {
-            console.log('callurlbad');
-            updateStatus(context, url, ts, 4, function() {
-                context.done();
+            console.log('call url bad');
+            updateStatus(url, ts, 4, function() {
+                console.log('status updated to failed');
             });
         });
     });
@@ -60,7 +62,7 @@ function runTask(context, url, ts) {
 
 }
 
-function updateStatus(context, url, ts, status, callback) {
+function updateStatus(url, ts, status, callback) {
     dynamo.updateItem({
         TableName:ddbTableName,
         Key:{
@@ -92,9 +94,11 @@ function logResponse(context, url, ts, response, callback) {
     }, callback);
 }
 
-function seekTasks(context, callback) {
+function runTasks(maxSeekRuntime, context, callback) {
 
-    setInterval(function(){
+    var tasksCompleted = [];
+
+    var runDueTasks = function(){
         var nowTs = Math.floor(Date.now()/1000);
         console.log("Looking for events before: " + nowTs);
         dynamo.query({
@@ -109,27 +113,22 @@ function seekTasks(context, callback) {
 
             console.log(data);
 
-            for(i=0;i<data.Items.length;i++) {
-
-                var params = {
-                    FunctionName: 'snooze',
-                    InvocationType: 'Event',
-                    Payload: JSON.stringify({
-                        method: "run",
-                        url: data.Items[i].url,
-                        ts: data.Items[i].ts
-                    })
-                };
-                console.log(params);
-                lambda.invoke(params, consoleSpam);
+            for(var i=0;i<data.Items.length;i++) {
+                runTask(tasksCompleted, data.Items[i].url, data.Items[i].ts);
             }
         });
 
-    }, seekInterval);
+    };
+    setInterval(runDueTasks, seekInterval);
+    runDueTasks();
+
+    if ('undefined' == typeof(maxSeekRuntime)) {
+        maxSeekRuntime = 4.9*60*1000;
+    }
 
     setTimeout(function() {
-        context.done();
-    }, 4.9*60*1000);
+        context.succeed(tasksCompleted);
+    }, maxSeekRuntime);
 }
 
 function addTask(url, timestamp, callback) {
@@ -145,7 +144,7 @@ function addTask(url, timestamp, callback) {
         callback);
 }
 
-function callUrl(context, url, success, fail) {
+function callUrl(url, success, fail) {
     var options = urlParser.parse(url);
     options.protocol = 'https:';
     console.log(options);
@@ -221,22 +220,12 @@ function initDynamoIfNeeded(err, context) {
                 };
                 console.log("Table creation begun");
 
+                //dynamo.waitFor() is really slow for running in the mocha context,
+                // so we fudge it, but give it enough time to actually init the table
                 setTimeout(function() {
                     console.log("table SHOULD HAVE BEEN created successfully");
                     context.fail("Call failed, but resulted in creation of table. Retry your request.");
                 }, 100);
-
-                //dynamo.waitFor('tableExists', params, function(waitErr, data) {
-                //    if (waitErr) {
-                //        console.log("waiting for table creation failed");
-                //        console.log(waitErr, waitErr.stack);
-                //        context.fail(waitErr);
-                //    } else {
-                //        console.log("table created successfully");
-                //        context.fail("Call failed, but resulted in creation of table. Retry your request.");
-                //    }
-                //});
-
             }
         });
     } else {
