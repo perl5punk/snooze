@@ -12,20 +12,27 @@ var seekInterval = 5000; // 5 seconds
 
 exports.handler = function(event, context) {
     console.log(event);
-    if (event.method == 'add') {
+    if (event.method === 'add') {
         console.log("Adding task!");
         addTask(event.url, event.timestamp, function(err, data) {
-            console.log(err);
-            console.log('Task Added!');
-            context.done();
+            if (err) {
+                initDynamoIfNeeded(err, context);
+            } else {
+                console.log('Task Added!');
+                context.succeed(event);
+            }
         });
-    } else if (event.method == 'run') {
+    } else if (event.method === 'run') {
         runTask(context, event.url, event.ts);
     }
     else {
         seekTasks(context, function(err, data) {
-            console.log(err);
-            context.done();
+            if (err) {
+                console.log(err);
+                initDynamoIfNeeded(err, context);
+            } else {
+                context.succeed();
+            }
         });
     }
 };
@@ -166,3 +173,73 @@ var consoleSpam = function(err, data) {
     if (err) console.log(err, err.stack); // an error occurred
     else     console.log(data);           // successful response
 };
+
+
+function initDynamoIfNeeded(err, context) {
+    if (err.name === 'ResourceNotFoundException') {
+        console.log("Dynamo table missing");
+        var params = {
+            TableName: ddbTableName,
+            AttributeDefinitions: [
+                {AttributeName: 'url',      AttributeType: 'S'},
+                {AttributeName: 'ts',       AttributeType: 'N'},
+                {AttributeName: 'status',   AttributeType: 'N'}
+            ],
+            KeySchema: [
+                {AttributeName: 'url',  KeyType: 'HASH'},
+                {AttributeName: 'ts',   KeyType: 'RANGE'}
+            ],
+            ProvisionedThroughput: {
+                ReadCapacityUnits: 2,
+                WriteCapacityUnits: 2
+            },
+            GlobalSecondaryIndexes: [
+                {
+                    IndexName: 'status-ts-index',
+                    KeySchema: [
+                        {AttributeName: 'status',   KeyType: 'HASH'},
+                        {AttributeName: 'ts',       KeyType: 'RANGE'}
+                    ],
+                    Projection: {
+                        ProjectionType:'KEYS_ONLY'
+                    },
+                    ProvisionedThroughput: {
+                        ReadCapacityUnits: 2,
+                        WriteCapacityUnits: 2
+                    }
+                }
+            ]
+        };
+        dynamo.createTable(params, function(createTableErr, data) {
+            if (createTableErr) {
+                console.log("Failed creating Table");
+                context.fail(createTableErr);
+            }
+            else {
+                var params = {
+                    TableName: ddbTableName
+                };
+                console.log("Table creation begun");
+
+                setTimeout(function() {
+                    console.log("table SHOULD HAVE BEEN created successfully");
+                    context.fail("Call failed, but resulted in creation of table. Retry your request.");
+                }, 100);
+
+                //dynamo.waitFor('tableExists', params, function(waitErr, data) {
+                //    if (waitErr) {
+                //        console.log("waiting for table creation failed");
+                //        console.log(waitErr, waitErr.stack);
+                //        context.fail(waitErr);
+                //    } else {
+                //        console.log("table created successfully");
+                //        context.fail("Call failed, but resulted in creation of table. Retry your request.");
+                //    }
+                //});
+
+            }
+        });
+    } else {
+        context.fail(err);
+    }
+}
