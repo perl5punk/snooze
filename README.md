@@ -5,4 +5,4 @@ snooze is service built on AWS Lambda and DynamoDB that calls HTTPS urls at a ti
 
 run tests with `npm test`
 
-deploy to AWS with `grunt lambda deploy`
+deploy to AWS with `grunt lambda_deploy`
