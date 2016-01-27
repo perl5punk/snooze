@@ -31,8 +31,20 @@ module.exports = function(grunt) {
                 },
                 src: ['test/**/*.js']
             }
+        },
+        mocha_istanbul: {
+            coverage: {
+                src: 'test',
+                options: {
+                    coverageFolder: './coverage',
+                    mask: '*.js',
+                    root: '/'
+                }
+            }
         }
     });
     grunt.loadNpmTasks('grunt-aws-lambda');
     grunt.loadNpmTasks('grunt-mocha-test');
+    grunt.loadNpmTasks('mocha_istanbul');
+    grunt.loadNpmTasks('grunt-mocha-istanbul');
 };
