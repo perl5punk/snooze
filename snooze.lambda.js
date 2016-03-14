@@ -16,7 +16,7 @@ var bbJWT       = require("bbjwt-client");
 var tasks       = require('./core/tasks');
 var runner      = require('./core/runner');
 
-var sdc         = require('./bbmetrics');
+var sdc         = require('./util/metrics');
 
 //var SERVERID = uuid.v4();
 
