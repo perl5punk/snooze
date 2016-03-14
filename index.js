@@ -29,7 +29,7 @@ process.on('uncaughtException',function(err){
     {
         console.log('uncaughtException: '+err.message,err.stack);
     }
-    process.exit(1);
+    //process.exit(1);
 });
 
 if (process.env.IP_ADDRESS)
