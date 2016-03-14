@@ -10,5 +10,6 @@ process.env = {
     JWT_SECRET: 'tests-for-days',
     LOGGING_LEVEL: 'INFO',
     ENVIRONMENT: 'Tests',
+    RUN_INTERVAL: 5,
     TEST_RUNNER: true
 };
