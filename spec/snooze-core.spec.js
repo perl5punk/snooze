@@ -7,6 +7,7 @@ var assert              = require('assert'),
     AWS                 = require('aws-sdk');
 
 var testEnvVars         = require('../test/test.env.inc.js');
+var index               = require('../index.js');
 
 // Stub Overrides
 
@@ -49,3 +50,11 @@ var appStubs = {
         encode: null
     }
 };
+
+describe('Making the POST to /add', function() {
+
+    it('hits the /add route', function(done) {
+        console.log('test');
+    })
+
+})
