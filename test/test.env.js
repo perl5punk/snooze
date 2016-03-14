@@ -6,6 +6,7 @@ process.env = {
     RATE_LIMIT_CONNECTIONS: '100',
     DYNAMO_ENDPOINT: 'dynamodb.us-east-1.amazonaws.com',
     ELK_LOGGER_HOST: 'localhost:9200',
+    METRICS_HOST: 'ignore.localhost',
     JWT_SECRET: 'tests-for-days',
     LOGGING_LEVEL: 'INFO',
     ENVIRONMENT: 'Tests',
