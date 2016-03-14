@@ -8,7 +8,7 @@ var tasks = require('./tasks');
 
 const fork = require('child_process').fork;
 
-var seekInterval = process.env.runInterval || 5000; // 5 second default
+var seekInterval = ((process.env.RUN_INTERVAL || 5) * 1000); // 5 second default
 
 function Runner()
 {
@@ -41,16 +41,32 @@ Runner.prototype.startTasksToRun = function()
 
 };
 
-Runner.prototype.startTask = function()
+Runner.prototype.startTask = function(task)
 {
 
-    var childProcess = fork('runtask',[{ type: type, payload: payload }]);
-    childProcess.on('close', function(code) {
+    if (task)
+    {
+        var childProcess = fork('./core/runtask',[{ task: task }]);
+        childProcess.on('close', function(code) {
 
-        // might need to clean-up tasks if it didn't exit successfully
+            if (code)
+            {
 
-        console.log("child runtask exited with code ${code}");
-    });
+                // might need to clean-up tasks if it didn't exit successfully
+                console.log("child runtask exited, NO GOOD "+code);
+
+            }
+            else
+            {
+                console.log("child runtask exited, all good");
+            }
+
+        });
+    }
+    else
+    {
+        console.error('Start called with no task..?');
+    }
 
 };
 
