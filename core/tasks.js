@@ -22,6 +22,13 @@ function Tasks(logInstance)
         TableName: this.getDbTableName()
     };
 
+    this.PENDING = 0;
+    this.RUNNING = 1;
+    this.CANCELED = 2;
+    this.ERROR = 3;
+    this.SUCCESS = 9;
+    this.UNKNOWN = 11;
+
     this.dynamo.describeTable(params, function(err, data) {
         if (err){
             console.log(err, err.stack);
@@ -38,7 +45,7 @@ function Tasks(logInstance)
             });
         }
         else {
-            console.error(data);
+            console.log('Tasks: '+params.TableName+' exists.');
         }
     });
 
@@ -80,17 +87,17 @@ Tasks.prototype.addTask = function(task,callback)
             Item: itemRecord
         },
         function(err,data){
-            var newId = '';//data.Items[0].id;
+            var newId = itemRecord.id;
             var errorMessage = '';
             if (err)
             {
                 errorMessage = err.message;
-                console.info('had an error adding a task',err);
+                console.info('Tasks; error adding a task',err);
 
             }
             else
             {
-                console.info('added a new task!',data);
+                console.info('Tasks; added a new task! '+newId,data);
             }
             callback(errorMessage,newId);
         });
@@ -101,7 +108,6 @@ Tasks.prototype.addTask = function(task,callback)
 Tasks.prototype.updateTask = function(id,attributes,callback)
 {
 
-    attributes.new_status = status;
     attributes.updated_time = Math.floor(Date.now()/1000);
 
     var updateItem = {
@@ -116,6 +122,7 @@ Tasks.prototype.updateTask = function(id,attributes,callback)
 
     for (var x in attributes)
     {
+        if (!attributes.hasOwnProperty(x)) continue;
         updateItem.UpdateExpression += '#'+x+' = :'+x+', ';
         updateItem.ExpressionAttributeNames['#'+x] = x;
         updateItem.ExpressionAttributeValues[':'+x] = attributes[x];
@@ -126,11 +133,10 @@ Tasks.prototype.updateTask = function(id,attributes,callback)
 
 };
 
-Tasks.prototype.updateTaskStatus = function(id,status,callback)
+Tasks.prototype.setStatus = function(id,status,callback)
 {
-
+    callback = callback || function(err,data){};
     this.updateTask(id, { status: status }, callback);
-
 };
 
 Tasks.prototype.getTasks = function(queryOptions, callback)
@@ -188,8 +194,7 @@ Tasks.prototype.makeTable = function()
             {AttributeName: 'status',   AttributeType: 'N'}
         ],
         KeySchema: [
-            { AttributeName: 'id',   KeyType: 'HASH' },
-            { AttributeName: 'ts',   KeyType: 'RANGE' }
+            { AttributeName: 'id',   KeyType: 'HASH' }
         ],
         ProvisionedThroughput: {
             ReadCapacityUnits: 5,
@@ -203,7 +208,7 @@ Tasks.prototype.makeTable = function()
                     {AttributeName: 'ts',       KeyType: 'RANGE'}
                 ],
                 Projection: {
-                    ProjectionType:'KEYS_ONLY'
+                    ProjectionType:'ALL'
                 },
                 ProvisionedThroughput: {
                     ReadCapacityUnits: 5,
