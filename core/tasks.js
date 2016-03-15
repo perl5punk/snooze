@@ -25,6 +25,7 @@ function Tasks(logInstance)
     this.PENDING = 0;
     this.RUNNING = 1;
     this.CANCELED = 2;
+    this.ERROR = 3;
     this.SUCCESS = 9;
     this.UNKNOWN = 11;
 
@@ -207,7 +208,7 @@ Tasks.prototype.makeTable = function()
                     {AttributeName: 'ts',       KeyType: 'RANGE'}
                 ],
                 Projection: {
-                    ProjectionType:'KEYS_ONLY'
+                    ProjectionType:'ALL'
                 },
                 ProvisionedThroughput: {
                     ReadCapacityUnits: 5,
