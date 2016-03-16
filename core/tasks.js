@@ -9,14 +9,6 @@ function Tasks(logInstance)
 {
 
     var tasks = this;
-    var dynamo = new AWS.DynamoDB({
-        endpoint: process.env.DYNAMO_ENDPOINT,
-        accessKeyId: process.env.AWS_ACCESS_KEY,
-        secretAccessKey: process.env.AWS_SECRET_KEY,
-        region: process.env.AWS_REGION
-    });
-
-    this.dynamo = new doc.DynamoDB(dynamo);
 
     var params = {
         TableName: this.getDbTableName()
@@ -28,6 +20,8 @@ function Tasks(logInstance)
     this.ERROR = 3;
     this.SUCCESS = 9;
     this.UNKNOWN = 11;
+
+    this.dynamo = this.getDynamo();
 
     this.dynamo.describeTable(params, function(err, data) {
         if (err){
@@ -117,7 +111,8 @@ Tasks.prototype.updateTask = function(id,attributes,callback)
             },
             UpdateExpression: 'set ',
             ExpressionAttributeNames: {},
-            ExpressionAttributeValues: {}
+            ExpressionAttributeValues: {},
+            ReturnValues : 'UPDATED_NEW'
         };
 
     for (var x in attributes)
@@ -169,7 +164,48 @@ Tasks.prototype.getTasksToRun = function(callback)
 
 };
 
+Tasks.prototype.getTask = function(id, callback)
+{
+
+    if (!id)
+    {
+        callback('ID is required', null);
+    }
+
+    var queryOptions = {
+        TableName : this.getDbTableName(),
+        Key : {
+            id : id
+        }
+    };
+
+    this.dynamo.getItem(queryOptions, function(err, data) {
+        if (err)
+        {
+            return callback (err, null);
+        }
+        else if (data.Item)
+        {
+            return callback(null, data.Item);
+        }
+            return callback(err, null);
+    });
+
+};
+
 Tasks.prototype.getDynamo = function() {
+
+    if(typeof this.dynamo === 'undefined')
+    {
+        var dynamo = new AWS.DynamoDB({
+            endpoint: process.env.DYNAMO_ENDPOINT,
+            accessKeyId: process.env.AWS_ACCESS_KEY,
+            secretAccessKey: process.env.AWS_SECRET_KEY,
+            region: process.env.AWS_REGION
+        });
+        this.dynamo = new doc.DynamoDB(dynamo);
+    }
+
     return this.dynamo;
 };
 
