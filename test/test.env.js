@@ -12,6 +12,5 @@ process.env = {
     LOGGING_LEVEL: 'INFO',
     ENVIRONMENT: 'Tests',
     RUN_INTERVAL: 5,
-    TEST_RUNNER: true,
-    IP_ADDRESS: '127.0.0.1'
+    TEST_RUNNER: true
 };
