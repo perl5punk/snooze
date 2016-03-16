@@ -65,7 +65,7 @@ describe('Making the POST to /add', function() {
         }
         else
         {
-            return 'localhost:8080';
+            return 'localhost:80';
         }
     };
 
@@ -132,6 +132,7 @@ describe('Making the POST to /add', function() {
         it('cancels a task in the queue', function (done){
             request(url)
                 .put('/cancel/' + editID)
+                .set(process.env.JWT_HEADER, token)
                 .expect(200)
                 .expect('Content-Type', 'application/json; charset=utf-8')
                 .expect(function(res){
@@ -170,19 +171,52 @@ describe('Making the POST to /add', function() {
 
     });
 
-    //describe('app routes - Check if event exists', function() {
-    //
-    //    xit('should find an event and return its information', function(done) {
-    //        //is - returns a status saying whether event exists /id/payload - GET
-    //        request(url)
-    //            .get('/' + editID + '/payload')
-    //            .expect(200)
-    //            .expect(function(res) {
-    //
-    //            })
-    //
-    //    });
-    //
-    //});
+    describe('app routes - Check if event exists', function() {
+
+        it('should find an event and return its information', function(done) {
+
+            request(url)
+                .get('/is/' + editID)
+                .expect(200)
+                .expect(function(res) {
+                    if(!res.body.task)
+                    {
+                        throw new Error('No task returned');
+                    }
+                    else if (!res.body.task.ts || !res.body.task.status || !res.body.task.added_timestamp)
+                    {
+                           throw new Error('Missing Task Information');
+                    }
+                    else
+                    {
+                        return true;
+                    }
+                })
+                .end(done);
+        });
+
+        it('should return error when task does not exist with that id', function(done) {
+
+            request(url)
+                .get('/is/310')
+                .expect(500)
+                .expect(function(res) {
+                    if (res.body.task)
+                    {
+                        throw new Error('There should be no task with this id');
+                    }
+                    else if (res.body.message !== 'Task does not exist')
+                    {
+                        throw new Error('Incorrect message sent back');
+                    }
+                    else
+                    {
+                        return true;
+                    }
+                }).end(done);
+
+        });
+
+    });
 
 });
