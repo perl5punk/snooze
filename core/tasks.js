@@ -117,7 +117,8 @@ Tasks.prototype.updateTask = function(id,attributes,callback)
             },
             UpdateExpression: 'set ',
             ExpressionAttributeNames: {},
-            ExpressionAttributeValues: {}
+            ExpressionAttributeValues: {},
+            ReturnValues : 'UPDATED_NEW'
         };
 
     for (var x in attributes)
@@ -166,6 +167,31 @@ Tasks.prototype.getTasksToRun = function(callback)
             this.dynamo.Condition("status", "EQ", 0)
         ]
     },callback);
+
+};
+
+Tasks.prototype.getTask = function(id, callback)
+{
+
+    if (!id)
+    {
+        callback('ID is required', null);
+    }
+
+    var queryOptions = {
+        TableName : this.getDbTableName(),
+        Key : {
+            id : id
+        }
+    };
+
+    this.dynamo.getItem(queryOptions, function(err, data) {
+        if (data.Item)
+        {
+            return callback(null, data.Item);
+        }
+       callback(err, null);
+    });
 
 };
 
