@@ -113,8 +113,29 @@ app.put('/cancel/:id', function (req, res, next) {
             }
         }
     });
-
 });
+
+app.get('/is/:id', function(req, res, next) {
+
+    tasks.getTask(req.params.id, function(err, data){
+        if(err)
+        {
+            returnErrorJson(res, 'Error retrieving task')
+        }
+        else
+        {
+            if(!data)
+            {
+                returnErrorJson(res, 'Task does not exist');
+            }
+            else
+            {
+                returnSuccessJson(res, {task: data, success: true, message: 'Task Found'})
+            }
+        }
+    })
+
+})
 
 function authenticate(req, res, callback)
 {
