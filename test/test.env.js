@@ -13,5 +13,5 @@ process.env = {
     ENVIRONMENT: 'Tests',
     RUN_INTERVAL: 5,
     TEST_RUNNER: true,
-    IP_ADDRESS: 80
+    IP_ADDRESS: 8080
 };
