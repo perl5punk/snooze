@@ -8,15 +8,9 @@ var ddbTableName = process.env.ENVIRONMENT + '_SnoozeTasks';
 function Tasks(logInstance)
 {
 
-    var tasks = this;
-    var dynamo = new AWS.DynamoDB({
-        endpoint: process.env.DYNAMO_ENDPOINT,
-        accessKeyId: process.env.AWS_ACCESS_KEY,
-        secretAccessKey: process.env.AWS_SECRET_KEY,
-        region: process.env.AWS_REGION
-    });
 
-    this.dynamo = new doc.DynamoDB(dynamo);
+
+    var tasks = this;
 
     var params = {
         TableName: this.getDbTableName()
@@ -28,6 +22,8 @@ function Tasks(logInstance)
     this.ERROR = 3;
     this.SUCCESS = 9;
     this.UNKNOWN = 11;
+
+    this.dynamo = this.getDynamo();
 
     this.dynamo.describeTable(params, function(err, data) {
         if (err){
@@ -186,16 +182,32 @@ Tasks.prototype.getTask = function(id, callback)
     };
 
     this.dynamo.getItem(queryOptions, function(err, data) {
-        if (data.Item)
+        if (err)
+        {
+            return callback (err, null);
+        }
+        else if (data.Item)
         {
             return callback(null, data.Item);
         }
-       callback(err, null);
+            return callback(err, null);
     });
 
 };
 
 Tasks.prototype.getDynamo = function() {
+
+    if(typeof this.dynamo === 'undefined')
+    {
+        var dynamo = new AWS.DynamoDB({
+            endpoint: process.env.DYNAMO_ENDPOINT,
+            accessKeyId: process.env.AWS_ACCESS_KEY,
+            secretAccessKey: process.env.AWS_SECRET_KEY,
+            region: process.env.AWS_REGION
+        });
+        this.dynamo = new doc.DynamoDB(dynamo);
+    }
+
     return this.dynamo;
 };
 
