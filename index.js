@@ -15,7 +15,7 @@ var logger      = require('./util/logger');
 var sdc         = require('./util/metrics');
 
 var tasks       = require('./core/tasks');
-console.error('Tasks included');
+
 var runner      = require('./core/runner');
 
 //var SERVERID = uuid.v4();
