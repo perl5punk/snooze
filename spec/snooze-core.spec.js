@@ -54,6 +54,8 @@ var appStubs = {
     }
 };
 
+
+
 describe('Making the POST to /add', function() {
 
     var editID = '';
@@ -128,14 +130,11 @@ describe('Making the POST to /add', function() {
                     {
                         throw new Error('status is not 200');
                     }
-                    else if (res.body.task.Attributes.status !== 2)
+                    if (process.env.DYNAMO_ENDPOINT.indexOf('localhost') === -1 && res.body.task.Attributes.status !== 2)
                     {
                         throw new Error('incorrect attribute');
                     }
-                    else
-                    {
-                        return true;
-                    }
+                    return true;
                 })
                 .end(done);
         });
