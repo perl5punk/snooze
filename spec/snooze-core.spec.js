@@ -60,6 +60,10 @@ describe('Making the POST to /add', function() {
 
     var editID = '';
 
+    before(function(done) {
+        setTimeout(done, 1000);
+    });
+
     var snooze = proxyquire('../index', appStubs);
 
     describe('app routes - add', function() {

@@ -133,9 +133,9 @@ app.get('/is/:id', function(req, res, next) {
                 returnSuccessJson(res, {task: data, success: true, message: 'Task Found'})
             }
         }
-    })
+    });
 
-})
+});
 
 function authenticate(req, res, callback)
 {

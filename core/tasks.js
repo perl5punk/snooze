@@ -8,8 +8,6 @@ var ddbTableName = process.env.ENVIRONMENT + '_SnoozeTasks';
 function Tasks(logInstance)
 {
 
-
-
     var tasks = this;
 
     var params = {
