@@ -32,7 +32,7 @@ process.on('uncaughtException',function(err){
 });
 
 
-app.listen(80, process.env.IP_ADDRESS);
+app.listen(80 || process.env.IP_ADDRESS);
 
 app.enable('trust proxy');
 app.use(bodyParser.urlencoded({ extended: false, limit: '50mb' }));
