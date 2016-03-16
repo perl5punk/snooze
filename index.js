@@ -31,10 +31,9 @@ process.on('uncaughtException',function(err){
     //process.exit(1);
 });
 
-if (process.env.IP_ADDRESS)
-{
-    app.listen(80, process.env.IP_ADDRESS);
-}
+
+app.listen(80, process.env.IP_ADDRESS);
+
 app.enable('trust proxy');
 app.use(bodyParser.urlencoded({ extended: false, limit: '50mb' }));
 app.use(bodyParser.json({limit: '50mb'}));
@@ -58,15 +57,15 @@ app.post('/add', function (req, res, next) {
     authenticate(req, res, function(jwt){
 
         // check requirements for adding a thing
-        if (task)
+        if (task && typeof task === 'object')
         {
 
             tasks.addTask(task,function(err,taskId){
                 if (err)
                 {
-                    logger.logError('Error occurred adding a task',task);
+                    //logger.logError('Error occurred adding a task',task);
                     sdc.incrMetric('addTaskError');
-                    returnErrorJson(res, { message: err, success: false });
+                    returnErrorJson(res, err);
                 }
                 else
                 {
@@ -79,11 +78,41 @@ app.post('/add', function (req, res, next) {
         }
         else
         {
-            returnError(res, 'no task specified, wtf?!');
+            returnError(res, 'no task specified, or not a valid object wtf?!');
         }
 
     });
 
+});
+
+app.put('/cancel/:id', function (req, res, next) {
+
+    tasks.getTask(req.params.id, function(err, data) {
+        if (err)
+        {
+            returnErrorJson(res, 'Error retrieving from DB');
+        }
+        else
+        {
+            if(!data)
+            {
+                returnErrorJson(res, 'Task does not exist');
+            }
+            else
+            {
+                tasks.setStatus(req.params.id, tasks.CANCELED, function (err, data) {
+                    if (err)
+                    {
+                        returnErrorJson(res, err);
+                    }
+                    else
+                    {
+                        returnSuccessJson(res, {task: data, success: true, message: 'Task Status Updated'});
+                    }
+                });
+            }
+        }
+    });
 
 });
 
@@ -93,7 +122,7 @@ function authenticate(req, res, callback)
     if (process.env.JWT_HEADER)
     {
         var token = req.get(process.env.JWT_HEADER);
-        decodedToken = bbjwt.decodeToken(token);
+        decodedToken = bbJWT.decodeToken(token);
         var reqIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
         if (decodedToken === false)
         {
@@ -110,9 +139,10 @@ function returnError(res,err)
     res.status(500).end('crap '+err);
 }
 
-function returnErrorJson(res,result)
+function returnErrorJson(res,message,data)
 {
-    res.status(500).json(result);
+    data = data || null;
+    res.status(500).json({message : message, data:data, success: false});
 }
 
 function returnSuccess(res,msg)
