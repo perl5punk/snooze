@@ -29,7 +29,7 @@ module.exports = function(grunt) {
                     quiet: false,
                     clearRequireCache: false
                 },
-                src: ['test/**/*.js']
+                src: ['spec/**/*.js']
             }
         },
         mocha_istanbul: {
