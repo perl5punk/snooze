@@ -46,8 +46,8 @@ var appStubs = {
         },
         '@global': true
     },
-    '../../logger': loggerStub,
-    './logger': loggerStub,
+    '../util/logger': loggerStub,
+    './util/logger': loggerStub,
     './metrics': sdcStub,
     Base64: {
         encode: null
