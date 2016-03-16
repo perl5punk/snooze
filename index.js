@@ -173,6 +173,6 @@ function runnerExited()
 
 }
 
-exports.handler = app;
+module.exports = app;
 
 
