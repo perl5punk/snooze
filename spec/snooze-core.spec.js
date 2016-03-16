@@ -58,30 +58,18 @@ describe('Making the POST to /add', function() {
 
     var editID = '';
 
-    var snoozeUrl = function() {
-        if (process.env.IP_ADDRESS)
-        {
-            return process.env.IP_ADDRESS + ':80';
-        }
-        else
-        {
-            return 'localhost:80';
-        }
-    };
-
-    var url = snoozeUrl();
     var snooze = proxyquire('../index', appStubs);
 
     describe('app routes - add', function() {
 
         it('tests if snooze is up', function(done){
-            request(url)
+            request(snooze)
                 .get('/')
                 .expect(200, 'Snooze is up.', done);
         });
 
         it('test against /add fails', function(done) {
-            request(url)
+            request(snooze)
                 .post('/add')
                 .set(process.env.JWT_HEADER, token)
                 .send({})
@@ -90,7 +78,7 @@ describe('Making the POST to /add', function() {
 
         it('test against /add', function(done) {
             var date = Date.now();
-            request(url)
+            request(snooze)
                 .post('/add')
                 .set(process.env.JWT_HEADER, token)
                 .send({task:
@@ -119,7 +107,7 @@ describe('Making the POST to /add', function() {
         });
 
         it('only accepts valid json', function(done) {
-            request(url)
+            request(snooze)
                 .post('/add')
                 .set(process.env.JWT_HEADER, token)
                 .send({task : 'String, Not Valid JSON'})
@@ -130,7 +118,7 @@ describe('Making the POST to /add', function() {
     describe('app routes - cancel', function() {
 
         it('cancels a task in the queue', function (done){
-            request(url)
+            request(snooze)
                 .put('/cancel/' + editID)
                 .set(process.env.JWT_HEADER, token)
                 .expect(200)
@@ -153,7 +141,7 @@ describe('Making the POST to /add', function() {
         });
 
         it('sends back an error if task is not found', function(done) {
-            request(url)
+            request(snooze)
                 .put('/cancel/4')
                 .expect(500)
                 .expect(function(res) {
@@ -175,7 +163,7 @@ describe('Making the POST to /add', function() {
 
         it('should find an event and return its information', function(done) {
 
-            request(url)
+            request(snooze)
                 .get('/is/' + editID)
                 .expect(200)
                 .expect(function(res) {
@@ -197,7 +185,7 @@ describe('Making the POST to /add', function() {
 
         it('should return error when task does not exist with that id', function(done) {
 
-            request(url)
+            request(snooze)
                 .get('/is/310')
                 .expect(500)
                 .expect(function(res) {
