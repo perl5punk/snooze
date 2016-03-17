@@ -215,7 +215,7 @@ describe('Snooze Test Suite', function() {
 
     describe('Add tasks to taskrunner', function() {
 
-        this.timeout(30000);
+        this.timeout(35000);
         var counter = 0;
         var id;
 
@@ -225,7 +225,7 @@ describe('Snooze Test Suite', function() {
             {url : 'https://www.google.com', delay : 20}, // Canceled = 2
             {delay: 1}, // Unknown = 11
             {url : 'https://asdasd', delay : 1}, // Error = 3
-            {url : 'https://donswansonracingschool.com/programs.htm', delay : 1}
+            {url : 'https://asdasd.com/', delay : 1}
         ];
 
         function addUrlTask (url, delay)
