@@ -65,6 +65,8 @@ describe('Making the POST to /add', function() {
     });
 
     var snooze = proxyquire('../index', appStubs);
+    var snoozeRunner = snooze.runner;
+    snooze = snooze.app;
 
     describe('app routes - add', function() {
 
@@ -87,7 +89,7 @@ describe('Making the POST to /add', function() {
             request(snooze)
                 .post('/add')
                 .set(process.env.JWT_HEADER, token)
-                .send({task:
+                .send({ task:
                     {
                         ts: date + 10000,
                         url: 'http://www.google.com',
@@ -98,7 +100,8 @@ describe('Making the POST to /add', function() {
                     editID = res.body.id;
                     if(res.statusCode !== 200)
                     {
-                        throw new Error('status is not 200');
+                        console.error(res.body);
+                        throw new Error('Status expected is not 200, '+res.statusCode);
                     }
                     if(!res.body.id)
                     {
