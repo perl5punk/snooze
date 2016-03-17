@@ -57,12 +57,12 @@ process.on('message', function(task){
             sns.publish(parameters,function(err,data){
                 if (err)
                 {
-                    process.send({ result: 'I ran a task sns, got an error...'+err });
+                    process.send({ result: 'I published an SNS, got an error... '+err });
                     process.exit(tasks.ERROR);
                 }
                 else
                 {
-                    process.send({ result: 'I ran a task sns...'+data });
+                    process.send({ result: 'I published a task SNS... '+data });
                     process.exit(0);
                 }
             });
@@ -73,6 +73,10 @@ process.on('message', function(task){
             process.exit(tasks.UNKNOWN);
         }
 
+    }
+    else
+    {
+        process.exit(tasks.UNKNOWN);
     }
 
 });
