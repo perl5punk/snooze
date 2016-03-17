@@ -54,11 +54,19 @@ app.get('/', function (req, res, next) {
 app.post('/add', function (req, res, next) {
 
     var task = req.body.task;
+    var isJSON = function(str) {
+        try {
+            JSON.parse(str);
+        } catch (e) {
+            return false;
+        }
+        return true;
+    };
 
     authenticate(req, res, function(jwt){
 
         // check requirements for adding a thing
-        if (task)
+        if (task && (typeof task == 'object' || typeof task == 'string' && isJSON(isJSON)))
         {
 
             tasks.addTask(task,function(err,taskId){
