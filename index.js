@@ -58,7 +58,7 @@ app.post('/add', function (req, res, next) {
     authenticate(req, res, function(jwt){
 
         // check requirements for adding a thing
-        if (task && typeof task === 'object')
+        if (task)
         {
 
             tasks.addTask(task,function(err,taskId){
@@ -177,7 +177,7 @@ function returnSuccessJson(res,result)
     res.status(200).json(result);
 }
 
-
+/* start task runner process */
 
 var child = new(forever.Forever)('core/runner.js', {
     max: 3,
@@ -185,16 +185,22 @@ var child = new(forever.Forever)('core/runner.js', {
     args: []
 });
 
+child.on('start', runnerStarted);
 child.on('exit', runnerExited);
 child.start();
 
 function runnerExited()
 {
-
     console.log('Tell something that the main runner exited, please!');
-
+}
+function runnerStarted()
+{
+    console.log('Task Runner Started');
 }
 
-module.exports = app;
+if (process.env.TEST_RUNNER)
+{
+    module.exports = { app: app, runner: child };
+}
 
 
