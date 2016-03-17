@@ -213,7 +213,7 @@ describe('Snooze Test Suite', function() {
 
     });
 
-    describe.only('Add tasks to taskrunner', function() {
+    describe('Add tasks to taskrunner', function() {
 
         this.timeout(30000);
         var counter = 0;
@@ -250,7 +250,7 @@ describe('Snooze Test Suite', function() {
 
         beforeEach(function(done) {
             addUrlTask(tasks[counter].url, tasks[counter].delay);
-            setTimeout(done, 2500);
+            setTimeout(done, 3000);
         });
 
 
@@ -293,7 +293,6 @@ describe('Snooze Test Suite', function() {
                 .put('/cancel/' + id)
                 .expect(200)
                 .end(function(err, res) {
-                    console.log(res.body);
                     if(res.body.task.status !== 2)
                     {
                         throw new Error('Task should have been cancelled');
@@ -311,7 +310,6 @@ describe('Snooze Test Suite', function() {
                 .get('/is/' + id)
                 .expect(500)
                 .end(function(err, res) {
-                    console.log(res.body);
                     if(res.body.task.status !== 11)
                     {
                         throw new Error('Task should be unkown, with no URL defined');
@@ -324,12 +322,11 @@ describe('Snooze Test Suite', function() {
                 });
         });
 
-        it('should error with no http instead of https entered', function(done) {
+        it('should error with http instead of https entered', function(done) {
             request(snooze)
                 .get('/is/' + id)
                 .expect(500)
                 .end(function(err, res) {
-                    console.log(res.body);
                     if(res.body.task.status !== 3)
                     {
                         throw new Error('Task should error out, http is being used');
@@ -347,7 +344,6 @@ describe('Snooze Test Suite', function() {
                 .get('/is/' + id)
                 .expect(200)
                 .end(function(err, res) {
-                    console.log(res.body);
                     if(res.body.task.status !== 1)
                     {
                         throw new Error('Task should still be running');
