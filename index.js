@@ -116,7 +116,7 @@ app.put('/cancel/:id', function (req, res, next) {
                     }
                     else
                     {
-                        returnSuccessJson(res, {task: data, success: true, message: 'Task Status Updated'});
+                        returnSuccessJson(res, {task: data.Attributes, success: true, message: 'Task Status Updated'});
                     }
                 });
             }

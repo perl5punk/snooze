@@ -1,4 +1,3 @@
-
 var https       = require('https');
 var AWS         = require('aws-sdk');
 var tasks       = require('./tasks');
@@ -13,7 +12,7 @@ var sns = new AWS.SNS(snsParameters);
 
 process.on('message', function(task){
 
-    console.log('CHILD got message:', task);
+    //console.log('CHILD got message:', task);
 
     if (task)
     {
@@ -23,15 +22,15 @@ process.on('message', function(task){
             var httpRequest = https.get(task.url, function(res) {
 
                 var body = [];
-                console.log('statusCode: ', res.statusCode);
-                console.log('headers: ', res.headers);
+                //console.log('statusCode: ', res.statusCode);
+                //console.log('headers: ', res.headers);
 
                 res.on('data', function(chunk) {
                     body.push(chunk);
                 }).on('end', function() {
                     body = body.toString();
 
-                    console.log(body);
+                    //console.log(body);
                     process.send({ result: body });
                     process.exit(0);
 
