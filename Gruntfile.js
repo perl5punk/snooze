@@ -1,26 +1,6 @@
 module.exports = function(grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
-        lambda_invoke: {
-            addTask: {
-                options: {
-                    file_name: "snooze.lambda.js",
-                    event: "testEvents/add.json"
-                }
-            },
-            runTask: {
-                options: {
-                    file_name: "snooze.lambda.js",
-                    event: "testEvents/run.json"
-                }
-            },
-            seekTask: {
-                options: {
-                    file_name: "snooze.lambda.js",
-                    event: "testEvents/seek.json"
-                }
-            }
-        },
         mochaTest: {
             test: {
                 options: {
@@ -29,12 +9,12 @@ module.exports = function(grunt) {
                     quiet: false,
                     clearRequireCache: false
                 },
-                src: ['test/**/*.js']
+                src: ['spec/**/*.js']
             }
         },
         mocha_istanbul: {
             coverage: {
-                src: 'test',
+                src: 'spec',
                 options: {
                     coverageFolder: './coverage',
                     mask: '*.js',
