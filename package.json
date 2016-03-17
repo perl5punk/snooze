@@ -31,8 +31,6 @@
     "underscore": "^1.8.3"
   },
   "devDependencies": {
-    "aws-lambda-mock-context": "^1.1.0",
-    "aws-sdk": "^2.2.42",
     "chai": "^3.4.1",
     "dynalite": "^0.17.3",
     "grunt": "^0.4.5",
