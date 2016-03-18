@@ -112,7 +112,7 @@ Tasks.prototype.updateTask = function(id,attributes,callback)
             UpdateExpression: 'set ',
             ExpressionAttributeNames: {},
             ExpressionAttributeValues: {},
-            ReturnValues : 'UPDATED_NEW'
+            ReturnValues : 'ALL_NEW'
         };
 
     for (var x in attributes)
@@ -123,6 +123,12 @@ Tasks.prototype.updateTask = function(id,attributes,callback)
         updateItem.ExpressionAttributeValues[':'+x] = attributes[x];
     }
     updateItem.UpdateExpression = updateItem.UpdateExpression.substr(0, updateItem.UpdateExpression.length-2);
+
+    if(process.env.TEST_RUNNER)
+    {
+
+        updateItem = dynamoLegacyFormat(updateItem);
+    }
 
     this.dynamo.updateItem(updateItem, callback);
 
@@ -277,6 +283,19 @@ function initDynamoIfNeeded(err, context) {
     } else {
         context.fail(err);
     }
+}
+
+function dynamoLegacyFormat(updateItem)
+{
+    updateItem.AttributeUpdates = {};
+    for (var x in updateItem.ExpressionAttributeValues)
+    {
+        updateItem.AttributeUpdates[x.replace(/:/, '')] = {
+            Action: 'PUT',
+            Value: updateItem.ExpressionAttributeValues[x]
+        };
+    }
+    return updateItem;
 }
 
 module.exports = new Tasks();

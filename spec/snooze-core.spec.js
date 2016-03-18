@@ -56,7 +56,7 @@ var appStubs = {
 
 
 
-describe('Making the POST to /add', function() {
+describe('Snooze Test Suite', function() {
 
     var editID = '';
 
@@ -137,7 +137,7 @@ describe('Making the POST to /add', function() {
                     {
                         throw new Error('status is not 200');
                     }
-                    if (process.env.DYNAMO_ENDPOINT.indexOf('localhost') === -1 && res.body.task.Attributes.status !== 2)
+                    if (process.env.DYNAMO_ENDPOINT.indexOf('localhost') === -1 && res.body.task.status !== 2)
                     {
                         throw new Error('incorrect attribute');
                     }
@@ -209,6 +209,174 @@ describe('Making the POST to /add', function() {
                     }
                 }).end(done);
 
+        });
+
+    });
+
+    describe('health check for taskrunner', function() {
+
+        it('should return 200 if taskrunner is up', function(done) {
+
+            request(snooze)
+                .get('/health')
+                .expect(200)
+                .end(function(err, res) {
+                    if(err) throw err;
+                    console.log('health res : ', res.body);
+                    done();
+                });
+
+        });
+
+    });
+
+    describe('Add tasks to taskrunner', function() {
+
+        this.timeout(35000);
+        var counter = 0;
+        var id;
+
+        var tasks = [
+            {url : 'https://www.google.com', delay: 10}, //Pending = 0
+            {url : 'https://www.google.com', delay : 1}, // Success = 9
+            {url : 'https://www.google.com', delay : 20}, // Canceled = 2
+            {delay: 1}, // Unknown = 11
+            {url : 'https://asdasd', delay : 1}, // Error = 3
+            {url : 'https://asdasd.com/', delay : 1}
+        ];
+
+        function addUrlTask (url, delay)
+        {
+            if(url)
+            {
+                var payload = {task : {url : url, ts: (Date.now()/1000) + delay}};
+            }
+            else
+            {
+                var payload = {task : {ts: (Date.now()/1000) + delay}}
+            }
+            request(snooze)
+                .post('/add')
+                .set(process.env.JWT_HEADER, token)
+                .send(payload)
+                .end(function(err, res) {
+                    id = res.body.id;
+                    counter += 1;
+                });
+        }
+
+        beforeEach(function(done) {
+            addUrlTask(tasks[counter].url, tasks[counter].delay);
+            setTimeout(done, 3000);
+        });
+
+
+        it('should have status pending', function(done) {
+            request(snooze)
+                .get('/is/' + id)
+                .expect(200)
+                .end(function(err, res) {
+                    if(err) throw err;
+                    if(res.body.task.status !== 0)
+                    {
+                        throw new Error('task should still be pending');
+                    }
+                    else
+                    {
+                        done();
+                        return true;
+                    }
+                });
+        });
+
+        it('should have status success', function(done) {
+            request(snooze)
+                .get('/is/' + id)
+                .expect(200)
+                .end(function(err, res) {
+                    if(err) throw err;
+                    if(res.body.task.status !== 9)
+                    {
+                        throw new Error('Task should have been successful');
+                    }
+                    else
+                    {
+                        done();
+                        return true;
+                    }
+                });
+        });
+
+        it('should cancel a task and have status cancelled', function(done) {
+            request(snooze)
+                .put('/cancel/' + id)
+                .expect(200)
+                .end(function(err, res) {
+                    if(err) throw err;
+                    if(res.body.task.status !== 2)
+                    {
+                        throw new Error('Task should have been cancelled');
+                    }
+                    else
+                    {
+                        done();
+                        return true;
+                    }
+                });
+        });
+
+        it('should be unknown error with no URL entered', function(done) {
+            request(snooze)
+                .get('/is/' + id)
+                .expect(200)
+                .end(function(err, res) {
+                    if(err) throw err;
+                    if(res.body.task.status !== 11)
+                    {
+                        throw new Error('Task should be unkown, with no URL defined');
+                    }
+                    else
+                    {
+                        done();
+                        return true;
+                    }
+                });
+        });
+
+        it('should error with http instead of https entered', function(done) {
+            request(snooze)
+                .get('/is/' + id)
+                .expect(200)
+                .end(function(err, res) {
+                    if(err) throw err;
+                    if(res.body.task.status !== 3)
+                    {
+                        throw new Error('Task should error out, http is being used');
+                    }
+                    else
+                    {
+                        done();
+                        return true;
+                    }
+                });
+        });
+
+        it('should show as running if process is ongoing', function(done) {
+            request(snooze)
+                .get('/is/' + id)
+                .expect(200)
+                .end(function(err, res) {
+                    if(err) throw err;
+                    if(res.body.task.status !== 1)
+                    {
+                        throw new Error('Task should still be running');
+                    }
+                    else
+                    {
+                        done();
+                        return true;
+                    }
+                });
         });
 
     });
