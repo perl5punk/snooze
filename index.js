@@ -148,8 +148,13 @@ app.get('/is/:id', function(req, res, next) {
 
 app.get('/health', function(req, res, next) {
 
-    if(child) {
-        returnSuccessJson(res, {message : 'runner is up'})
+    if(child)
+    {
+        returnSuccessJson(res, {message : 'runner is up'});
+    }
+    else
+    {
+        returnErrorJson(res, 'Runner is down right now');
     }
 
 });
