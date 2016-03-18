@@ -213,6 +213,31 @@ describe('Snooze Test Suite', function() {
 
     });
 
+    describe('health check for taskrunner', function() {
+
+        it('should return 200 if taskrunner is up', function(done) {
+
+            request(snooze)
+                .get('/health')
+                .expect(200)
+                .end(function(err, res) {
+                    if(err) throw err;
+                   if(res.body.message !== 'runner is up')
+                   {
+                       throw new Error('Runner should be up and running')
+                   }
+                    else
+                   {
+                       done();
+                       return true;
+                   }
+
+                });
+
+        });
+
+    });
+
     describe('Add tasks to taskrunner', function() {
 
         this.timeout(35000);
@@ -259,6 +284,7 @@ describe('Snooze Test Suite', function() {
                 .get('/is/' + id)
                 .expect(200)
                 .end(function(err, res) {
+                    if(err) throw err;
                     if(res.body.task.status !== 0)
                     {
                         throw new Error('task should still be pending');
@@ -276,6 +302,7 @@ describe('Snooze Test Suite', function() {
                 .get('/is/' + id)
                 .expect(200)
                 .end(function(err, res) {
+                    if(err) throw err;
                     if(res.body.task.status !== 9)
                     {
                         throw new Error('Task should have been successful');
@@ -293,6 +320,7 @@ describe('Snooze Test Suite', function() {
                 .put('/cancel/' + id)
                 .expect(200)
                 .end(function(err, res) {
+                    if(err) throw err;
                     if(res.body.task.status !== 2)
                     {
                         throw new Error('Task should have been cancelled');
@@ -308,8 +336,9 @@ describe('Snooze Test Suite', function() {
         it('should be unknown error with no URL entered', function(done) {
             request(snooze)
                 .get('/is/' + id)
-                .expect(500)
+                .expect(200)
                 .end(function(err, res) {
+                    if(err) throw err;
                     if(res.body.task.status !== 11)
                     {
                         throw new Error('Task should be unkown, with no URL defined');
@@ -325,8 +354,9 @@ describe('Snooze Test Suite', function() {
         it('should error with http instead of https entered', function(done) {
             request(snooze)
                 .get('/is/' + id)
-                .expect(500)
+                .expect(200)
                 .end(function(err, res) {
+                    if(err) throw err;
                     if(res.body.task.status !== 3)
                     {
                         throw new Error('Task should error out, http is being used');
@@ -344,6 +374,7 @@ describe('Snooze Test Suite', function() {
                 .get('/is/' + id)
                 .expect(200)
                 .end(function(err, res) {
+                    if(err) throw err;
                     if(res.body.task.status !== 1)
                     {
                         throw new Error('Task should still be running');
