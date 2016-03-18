@@ -17,7 +17,6 @@ RUN cp -r /tmp/node_modules /node_modules
 WORKDIR /nodeapp
 ADD / /nodeapp
 
-EXPOSE 2997
-EXPOSE 8586
+EXPOSE 80
 
 CMD ["forever", "/nodeapp/index.js"]
