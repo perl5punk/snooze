@@ -146,15 +146,15 @@ app.get('/is/:id', function(req, res, next) {
 
 });
 
-app.get('/health', function(req, res, next) {
+app.get('/health-check', function(req, res, next) {
 
     if(child)
     {
-        returnSuccessJson(res, {message : 'runner is up'});
+        returnSuccessJson(res, {message : 'Snooze is happy, Runner is up'});
     }
     else
     {
-        returnErrorJson(res, 'Runner is down right now');
+        returnErrorJson(res, 'Snooze is sad, Runner is down right now');
     }
 
 });

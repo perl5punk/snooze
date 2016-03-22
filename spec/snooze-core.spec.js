@@ -218,7 +218,7 @@ describe('Snooze Test Suite', function() {
         it('should return 200 if taskrunner is up', function(done) {
 
             request(snooze)
-                .get('/health')
+                .get('/health-check')
                 .expect(200)
                 .end(function(err, res) {
                     if(err) throw err;
