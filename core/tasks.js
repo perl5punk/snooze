@@ -199,6 +199,23 @@ Tasks.prototype.getTask = function(id, callback)
 
 };
 
+Tasks.prototype.getTaskByRef = function (refId,callback)
+{
+    if(!refId)
+    {
+        callback('Reference ID is required!');
+    }
+
+    var nowTs = Math.floor(Date.now()/1000);
+    this.getTasks({
+        IndexName: 'refId-index',
+        KeyConditions: [
+            this.dynamo.Condition("refId", "EQ", refId)
+        ]
+    },callback);
+
+};
+
 Tasks.prototype.getDynamo = function() {
 
     if(typeof this.dynamo === 'undefined')
@@ -233,10 +250,11 @@ Tasks.prototype.makeTable = function()
         AttributeDefinitions: [
             {AttributeName: 'id',       AttributeType: 'S'},
             {AttributeName: 'ts',       AttributeType: 'N'},
-            {AttributeName: 'status',   AttributeType: 'N'}
+            {AttributeName: 'status',   AttributeType: 'N'},
+            {AttributeName: 'refId',    AttributeType: 'S'}
         ],
         KeySchema: [
-            { AttributeName: 'id',   KeyType: 'HASH' }
+            { AttributeName: 'id',    KeyType: 'HASH' }
         ],
         ProvisionedThroughput: {
             ReadCapacityUnits: 5,
@@ -248,6 +266,19 @@ Tasks.prototype.makeTable = function()
                 KeySchema: [
                     {AttributeName: 'status',   KeyType: 'HASH'},
                     {AttributeName: 'ts',       KeyType: 'RANGE'}
+                ],
+                Projection: {
+                    ProjectionType:'ALL'
+                },
+                ProvisionedThroughput: {
+                    ReadCapacityUnits: 5,
+                    WriteCapacityUnits: 10
+                }
+            },
+            {
+                IndexName: 'refId-index',
+                KeySchema: [
+                    {AttributeName: 'refId',   KeyType: 'HASH'}
                 ],
                 Projection: {
                     ProjectionType:'ALL'

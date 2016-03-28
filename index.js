@@ -146,6 +146,36 @@ app.get('/is/:id', function(req, res, next) {
 
 });
 
+app.get('/isbyref/:refid', function(req, res, next) {
+
+    tasks.getTaskByRef(req.params.refid, function(err, data){
+        if(err)
+        {
+            returnErrorJson(res, 'Error retrieving task')
+        }
+        else
+        {
+            try
+            {
+                if(!data)
+                {
+                    returnErrorJson(res, 'Task does not exist');
+                }
+                else
+                {
+                    returnSuccessJson(res, {task: data.Items[0], success: true, message: 'Task Found'})
+                }
+            }
+            catch (e)
+            {
+                returnErrorJson(res, e.message);
+            }
+
+        }
+    });
+
+});
+
 app.get('/health-check', function(req, res, next) {
 
     if(child)

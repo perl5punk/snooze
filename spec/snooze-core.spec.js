@@ -381,4 +381,79 @@ describe('Snooze Test Suite', function() {
 
     });
 
+    describe('Tasks with reference Id', function() {
+
+        var taskId;
+        var refId;
+
+        it('should add a task with a reference ID', function(done) {
+            var date = Date.now();
+            request(snooze)
+                .post('/add')
+                .set(process.env.JWT_HEADER, token)
+                .send({ task:
+                {
+                    ts: date + 10000,
+                    url: 'http://www.google.com',
+                    status : 1,
+                    refId: '12345'
+                }
+                })
+                .expect(200)
+                .end(function(err, res) {
+                    if(err) throw err;
+                    if(!res.body.id)
+                    {
+                        throw new Error ('no id was returned');
+                    }
+                    else
+                    {
+                        taskId = res.body.id;
+                        done();
+                        return true;
+                    }
+                });
+        });
+
+        it('should get task added given a taskid', function(done) {
+            request(snooze)
+                .get('/is/' + taskId)
+                .expect(200)
+                .end(function(err, res) {
+                    if(err) throw err;
+                    if(res.body.task.refId !== '12345')
+                    {
+                        throw new Error ('incorrect reference Id returned')
+                    }
+                    else
+                    {
+                        refId = res.body.task.refId;
+                        done();
+                        return true;
+                    }
+                });
+        });
+
+        it('should get task given a reference id', function(done) {
+           request(snooze)
+               .get('/isbyref/' + refId)
+               .expect(200)
+               .end(function(err, res) {
+                   if(err) throw err;
+                   console.log(res.body);
+                   if(res.body.task.id !== taskId || res.body.task.refId !== refId)
+                   {
+                       throw new Error ('incorrect reference id or task id returned')
+                   }
+                   else
+                   {
+                       done();
+                       return true;
+                   }
+               });
+        });
+
+    });
+
+
 });
