@@ -381,7 +381,7 @@ describe('Snooze Test Suite', function() {
 
     });
 
-    describe.only('Tasks with reference Id', function() {
+    describe('Tasks with reference Id', function() {
 
         var taskId;
         var refId;
