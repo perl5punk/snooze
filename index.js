@@ -68,22 +68,29 @@ app.post('/add', function (req, res, next) {
         // check requirements for adding a thing
         if (task && (typeof task == 'object' || typeof task == 'string' && isJSON(isJSON)))
         {
-
-            tasks.addTask(task,function(err,taskId){
-                if (err)
+            tasks.checkForDuplicateRefId(req.body.task.refId, function(err, data) {
+                if(err)
                 {
-                    //logger.logError('Error occurred adding a task',task);
-                    sdc.incrMetric('addTaskError');
                     returnErrorJson(res, err);
                 }
                 else
                 {
-                    sdc.incrMetric('addTaskSuccess');
-                    returnSuccessJson(res, { id: taskId, success: true, message: 'Task added' });
+                    tasks.addTask(task,function(err,taskId){
+                        if (err)
+                        {
+                            //logger.logError('Error occurred adding a task',task);
+                            sdc.incrMetric('addTaskError');
+                            returnErrorJson(res, err);
+                        }
+                        else
+                        {
+                            sdc.incrMetric('addTaskSuccess');
+                            returnSuccessJson(res, { id: taskId, success: true, message: 'Task added' });
+                        }
+
+                    });
                 }
-
             });
-
         }
         else
         {
