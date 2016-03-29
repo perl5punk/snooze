@@ -157,7 +157,7 @@ app.get('/isbyref/:refid', function(req, res, next) {
         {
             try
             {
-                if(!data)
+                if(data.Items.length === 0)
                 {
                     returnErrorJson(res, 'Task does not exist');
                 }
@@ -186,6 +186,24 @@ app.get('/health-check', function(req, res, next) {
     {
         returnErrorJson(res, 'Snooze is sad, Runner is down right now');
     }
+
+});
+
+app.put('/task/:id', function(req, res, next) {
+
+    var newTaskInfo = req.body.task;
+
+    tasks.updateTask(req.params.id, newTaskInfo,function(err, data) {
+        if(err)
+        {
+            returnErrorJson(res, 'Task not updated correctly');
+        }
+        else
+        {
+            returnSuccessJson(res, {task : data.Attributes, success: true, message: 'Task successfully Updated'});
+        }
+
+    });
 
 });
 
