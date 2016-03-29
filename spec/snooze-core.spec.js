@@ -574,7 +574,7 @@ describe('Snooze Test Suite', function() {
                 {
                     ts: date + 1000,
                     refId : '12093',
-                    snsTarget : 'arn:aws:sns:us-east-1:286551237558:snooze-test',
+                    snsTarget : 'arn:aws:sns:us-east-1:286550000000:snooze-test',
                     payload :
                     {
                         email : 'bradleyjamesbouley@gmail.com',
