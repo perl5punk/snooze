@@ -68,7 +68,7 @@ app.post('/add', function (req, res, next) {
         // check requirements for adding a thing
         if (task && (typeof task == 'object' || typeof task == 'string' && isJSON(isJSON)))
         {
-            tasks.checkForDuplicateRefId(req.body.task.refId, function(err, data) {
+            tasks.checkForDuplicateRefId(req.body.task.refId, function(err, exists) {
                 if(err)
                 {
                     returnErrorJson(res, err);

@@ -218,23 +218,20 @@ Tasks.prototype.getTaskByRef = function (refId,callback)
 
 Tasks.prototype.checkForDuplicateRefId = function (refId, callback)
 {
-    var successMessage = 'No tasks with that refId';
-
     this.getTaskByRef(refId, function(err, data) {
         if(!data)
         {
-           callback(null, successMessage);
+           callback(null, true);
         }
         else
         {
            if(data.Items.length === 0)
            {
-               callback(null, successMessage);
+               callback(null, true);
            }
            else
            {
-               var errorMessage = 'Already a task with that refId!!!';
-               callback(errorMessage, null);
+               callback('Already a task with that refId!!!', null);
            }
         }
     });
