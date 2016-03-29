@@ -455,5 +455,61 @@ describe('Snooze Test Suite', function() {
 
     });
 
+    describe('editing tasks in the database', function() {
+
+        var taskId;
+
+        before(function(done) {
+            var date = Date.now();
+            request(snooze)
+                .post('/add')
+                .set(process.env.JWT_HEADER, token)
+                .send({ task:
+                    {
+                        ts: date + 10000,
+                        url: 'http://www.google.com',
+                        status : 1,
+                        refId: '11111'
+                    }
+                })
+                .end(function(err, res) {
+                    taskId = res.body.id;
+                    done();
+                });
+        });
+
+        it('should edit a task in the database', function(done) {
+            var date = Date.now();
+            var newTs = date + 20000;
+            request(snooze)
+                .put('/task/' + taskId)
+                .set(process.env.JWT_HEADER, token)
+                .send({ task :
+                    {
+                        refId: '67890',
+                        ts: newTs
+                    }
+                })
+                .expect(200)
+                .end(function(err, res) {
+                   if(err) throw err;
+                    if(res.body.task.refId !== '67890')
+                    {
+                        throw new Error ('the reference Id hasn\'t been updated')
+                    }
+                    else if (res.body.task.ts !== newTs)
+                    {
+                        throw new Error ('The timestamp hasn\'t been updated')
+                    }
+                    else
+                    {
+                        done();
+                        return true;
+                    }
+                });
+        });
+
+    });
+
 
 });
