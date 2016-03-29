@@ -561,5 +561,61 @@ describe('Snooze Test Suite', function() {
 
     });
 
+    describe('adding an SNS task', function() {
+
+        var taskId;
+
+        it('should add an SNS task to dynamo', function(done) {
+            var date = Date.now();
+            request(snooze)
+                .post('/add')
+                .set(process.env.JWT_HEADER, token)
+                .send({ task :
+                {
+                    ts: date + 1000,
+                    refId : '12093',
+                    snsTarget : 'arn:aws:sns:us-east-1:286551237558:snooze-test',
+                    payload :
+                    {
+                        email : 'bradleyjamesbouley@gmail.com',
+                        message : 'Adding sns payload to dynamo'
+                    }
+                }
+                })
+                .expect(200)
+                .end(function(err, res) {
+                    if(err) throw err;
+                    if (!res.body.success)
+                    {
+                        throw new Error ('task not added!!')
+                    }
+                    else
+                    {
+                        taskId = res.body.id;
+                        done();
+                        return true;
+                    }
+                });
+        });
+
+        it('should have that SNS task in the database', function(done) {
+            request(snooze)
+                .get('/is/' + taskId)
+                .expect(200)
+                .end(function(err, res) {
+                    if(err) throw err;
+                    if(!res.body.success)
+                    {
+                        throw new Error('Task wasnt retrieved from the database correctly');
+                    }
+                    else
+                    {
+                        done();
+                        return true;
+                    }
+                });
+        });
+
+    });
 
 });
