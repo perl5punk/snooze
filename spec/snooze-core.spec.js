@@ -92,8 +92,7 @@ describe('Snooze Test Suite', function() {
                 .send({ task:
                     {
                         ts: date + 10000,
-                        url: 'http://www.google.com',
-                        status : 1
+                        url: 'https://www.google.com'
                     }
                 })
                 .expect(function(res){
@@ -101,7 +100,7 @@ describe('Snooze Test Suite', function() {
                     if(res.statusCode !== 200)
                     {
                         console.error(res.body);
-                        throw new Error('Status expected is not 200, '+res.statusCode);
+                        throw new Error('Status is not 200, '+res.statusCode);
                     }
                     if(!res.body.id)
                     {
@@ -238,22 +237,22 @@ describe('Snooze Test Suite', function() {
 
         var tasks = [
             {url : 'https://www.google.com', delay: 10}, //Pending = 0
-            {url : 'https://www.google.com', delay : 1}, // Success = 9
+            {url : 'https://www.google.com', delay : 0.2}, // Success = 9
             {url : 'https://www.google.com', delay : 20}, // Canceled = 2
             {delay: 1}, // Unknown = 11
             {url : 'https://asdasd', delay : 1}, // Error = 3
             {url : 'https://asdasd.com/', delay : 1}
         ];
 
-        function addUrlTask (url, delay)
+        function addUrlTask (url, delay, refId)
         {
             if(url)
             {
-                var payload = {task : {url : url, ts: (Date.now()/1000) + delay}};
+                var payload = {task : {url : url, ts: (Date.now()/1000) + delay, refId : refId}};
             }
             else
             {
-                var payload = {task : {ts: (Date.now()/1000) + delay}}
+                var payload = {task : {ts: (Date.now()/1000) + delay, refId : refId}};
             }
             request(snooze)
                 .post('/add')
@@ -266,7 +265,7 @@ describe('Snooze Test Suite', function() {
         }
 
         beforeEach(function(done) {
-            addUrlTask(tasks[counter].url, tasks[counter].delay);
+            addUrlTask(tasks[counter].url, tasks[counter].delay, '111' + counter);
             setTimeout(done, 3000);
         });
 
@@ -394,8 +393,8 @@ describe('Snooze Test Suite', function() {
                 .send({ task:
                 {
                     ts: date + 10000,
-                    url: 'http://www.google.com',
-                    status : 1,
+                    url: 'https://www.google.com',
+                    status : 0,
                     refId: '12345'
                 }
                 })
@@ -467,8 +466,7 @@ describe('Snooze Test Suite', function() {
                 .send({ task:
                     {
                         ts: date + 10000,
-                        url: 'http://www.google.com',
-                        status : 1,
+                        url: 'https://www.google.com',
                         refId: '11111'
                     }
                 })
@@ -500,6 +498,58 @@ describe('Snooze Test Suite', function() {
                     else if (res.body.task.ts !== newTs)
                     {
                         throw new Error ('The timestamp hasn\'t been updated')
+                    }
+                    else
+                    {
+                        done();
+                        return true;
+                    }
+                });
+        });
+
+    });
+
+    describe('Check for duplicate refId and taskId in the database', function() {
+
+        var taskId;
+        var refId = '00001';
+
+        before(function(done) {
+            var date = Date.now();
+            request(snooze)
+                .post('/add')
+                .set(process.env.JWT_HEADER, token)
+                .send({ task:
+                {
+                    ts: date + 10000,
+                    url: 'https://www.google.com',
+                    refId: refId
+                }
+                })
+                .end(function(err, res) {
+                    taskId = res.body.id;
+                    done();
+                });
+        });
+
+        it('should send an error when adding an item with a duplicate refId', function(done) {
+            var date = Date.now();
+            request(snooze)
+                .post('/add')
+                .set(process.env.JWT_HEADER, token)
+                .send({ task :
+                {
+                    ts: date + 10000,
+                    url: 'https://www.google.com',
+                    refId: refId
+                }
+                })
+                .expect(500)
+                .end(function(err, res) {
+                    if (err) throw err;
+                    if(res.body.success)
+                    {
+                        throw new Error ('task should not have been added')
                     }
                     else
                     {
