@@ -216,6 +216,31 @@ Tasks.prototype.getTaskByRef = function (refId,callback)
 
 };
 
+Tasks.prototype.checkForDuplicateRefId = function (refId, callback)
+{
+    var successMessage = 'No tasks with that refId';
+
+    this.getTaskByRef(refId, function(err, data) {
+        if(!data)
+        {
+           callback(null, successMessage);
+        }
+        else
+        {
+           if(data.Items.length === 0)
+           {
+               callback(null, successMessage);
+           }
+           else
+           {
+               var errorMessage = 'Already a task with that refId!!!';
+               callback(errorMessage, null);
+           }
+        }
+    });
+};
+
+
 Tasks.prototype.getDynamo = function() {
 
     if(typeof this.dynamo === 'undefined')
