@@ -166,7 +166,8 @@ app.get('/isbyref/:refid', function(req, res, next) {
             {
                 if(data.Items.length === 0)
                 {
-                    returnErrorJson(res, 'Task does not exist');
+                    returnNotFound(res, 'Task does not exist');
+                    res.status(404)
                 }
                 else
                 {
@@ -199,6 +200,7 @@ app.get('/health-check', function(req, res, next) {
 app.put('/task/:id', function(req, res, next) {
 
     var newTaskInfo = req.body.task;
+    console.log('Task info being sent up : ', newTaskInfo);
 
     tasks.updateTask(req.params.id, newTaskInfo,function(err, data) {
         if(err)
@@ -241,6 +243,12 @@ function returnErrorJson(res,message,data)
 {
     data = data || null;
     res.status(500).json({message : message, data:data, success: false});
+}
+
+function returnNotFound(res, message, data)
+{
+    data = data || null;
+    res.status(404).json({ message : message, data : data, success : false})
 }
 
 function returnSuccess(res,msg)
