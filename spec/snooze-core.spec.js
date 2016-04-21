@@ -81,7 +81,7 @@ describe('Snooze Test Suite', function() {
                 .post('/add')
                 .set(process.env.JWT_HEADER, token)
                 .send({})
-                .expect(500, 'crap no task specified, or not a valid object wtf?!', done);
+                .expect(500, 'crap no task specified, or not a valid object?!', done);
         });
 
         it('test against /add', function(done) {
@@ -120,7 +120,7 @@ describe('Snooze Test Suite', function() {
                 .post('/add')
                 .set(process.env.JWT_HEADER, token)
                 .send({task : 'String, Not Valid JSON'})
-                .expect(500, 'crap no task specified, or not a valid object wtf?!', done);
+                .expect(500, 'crap no task specified, or not a valid object?!', done);
         });
     });
 
@@ -241,7 +241,7 @@ describe('Snooze Test Suite', function() {
             {url : 'https://www.google.com', delay : 1}, // Success = 9
             {url : 'https://www.google.com', delay : 20}, // Canceled = 2
             {delay: 1}, // Unknown = 11
-            {url : 'https://asdasd', delay : 1}, // Error = 3
+            {url : 'http://asdasd', delay : 2}, // Error = 3
             {url : 'https://asdasd.com/', delay : 1}
         ];
 
