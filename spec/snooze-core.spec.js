@@ -241,7 +241,7 @@ describe('Snooze Test Suite', function() {
             {url : 'https://www.google.com', delay : 1}, // Success = 9
             {url : 'https://www.google.com', delay : 20}, // Canceled = 2
             {delay: 1}, // Unknown = 11
-            {url : 'http://asdasd', delay : 2}, // Error = 3
+            {url : 'https://asdasd', delay : 2}, // Error = 3
             {url : 'https://asdasd.com/', delay : 1}
         ];
 
