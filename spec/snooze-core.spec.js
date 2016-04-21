@@ -238,10 +238,10 @@ describe('Snooze Test Suite', function() {
 
         var tasks = [
             {url : 'https://www.google.com', delay: 10}, //Pending = 0
-            {url : 'https://www.google.com', delay : 1}, // Success = 9
+            {url : 'https://www.google.com', delay : 3}, // Success = 9
             {url : 'https://www.google.com', delay : 20}, // Canceled = 2
             {delay: 1}, // Unknown = 11
-            {url : 'https://asdasd', delay : 2}, // Error = 3
+            {url : 'https://asdasdfff', delay : 1}, // Error = 3
             {url : 'https://asdasd.com/', delay : 1}
         ];
 
@@ -333,7 +333,7 @@ describe('Snooze Test Suite', function() {
                     if(err) throw err;
                     if(res.body.task.status !== 11)
                     {
-                        throw new Error('Task should be unkown, with no URL defined');
+                        throw new Error('Task should be unknown, with no URL defined');
                     }
                     else
                     {
