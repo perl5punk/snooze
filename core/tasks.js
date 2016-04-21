@@ -14,7 +14,8 @@ function Tasks(logInstance)
         TableName: this.getDbTableName()
     };
 
-    this.PENDING = 0;
+    this.PENDING = -1;
+    this.QUEUED = 0;
     this.RUNNING = 1;
     this.CANCELED = 2;
     this.ERROR = 3;
@@ -164,7 +165,7 @@ Tasks.prototype.getTasksToRun = function(callback)
         IndexName: 'status-ts-index',
         KeyConditions: [
             this.dynamo.Condition("ts", "LE", nowTs),
-            this.dynamo.Condition("status", "EQ", 0)
+            this.dynamo.Condition("status", "EQ", this.QUEUED)
         ]
     },callback);
 
