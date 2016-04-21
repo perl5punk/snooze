@@ -241,7 +241,7 @@ describe('Snooze Test Suite', function() {
             {url : 'https://www.google.com', delay : 3}, // Success = 9
             {url : 'https://www.google.com', delay : 20}, // Canceled = 2
             {delay: 1}, // Unknown = 11
-            {url : 'https://asdasdfff', delay : 1}, // Error = 3
+            {url : 'http://asdasd', delay : 1}, // Error = 3
             {url : 'https://asdasd.com/', delay : 1}
         ];
 
@@ -343,23 +343,23 @@ describe('Snooze Test Suite', function() {
                 });
         });
 
-        it('should error with http instead of https entered', function(done) {
-            request(snooze)
-                .get('/is/' + id)
-                .expect(200)
-                .end(function(err, res) {
-                    if(err) throw err;
-                    if(res.body.task.status !== 3)
-                    {
-                        throw new Error('Task should error out, http is being used');
-                    }
-                    else
-                    {
-                        done();
-                        return true;
-                    }
-                });
-        });
+        //it('should error with http instead of https entered', function(done) {
+        //    request(snooze)
+        //        .get('/is/' + id)
+        //        .expect(200)
+        //        .end(function(err, res) {
+        //            if(err) throw err;
+        //            if(res.body.task.status !== 3)
+        //            {
+        //                throw new Error('Task should error out, http is being used');
+        //            }
+        //            else
+        //            {
+        //                done();
+        //                return true;
+        //            }
+        //        });
+        //});
 
         it('should show as running if process is ongoing', function(done) {
             request(snooze)
