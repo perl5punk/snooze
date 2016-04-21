@@ -14,6 +14,7 @@ var crypto      = require('crypto');
 var logger      = require('./util/logger');
 var sdc         = require('./util/metrics');
 
+var snsMap      = require('./core/snsMap');
 var tasks       = require('./core/tasks');
 
 var runner      = require('./core/runner');
@@ -51,6 +52,40 @@ app.get('/', function (req, res, next) {
     returnSuccess(res,'Snooze is up.');
 });
 
+app.post('/snsTarget', function(req, res, next){
+
+    authenticate(req, res, function(jwt){
+        snsMap.addTarget(req.body,function(err,taskInfo){
+            if (err)
+            {
+                returnErrorJson(res, 'Error adding target; '+err);
+            }
+            else
+            {
+                returnSuccessJson(res, {message: 'SNS Target Added for '+taskInfo.taskType });
+            }
+        });
+    });
+
+});
+
+app.get('/snsTarget/:taskType', function(req, res, next){
+
+    authenticate(req, res, function(jwt) {
+        snsMap.getTarget(req.params.taskType,function(err,snsTargets){
+            if (err)
+            {
+                returnErrorJson(res, 'Error occurred retrieving snsTargets; '+err);
+            }
+            else
+            {
+                returnSuccessJson(res, snsTargets);
+            }
+        });
+    });
+
+});
+
 app.post('/add', function (req, res, next) {
 
     var task = req.body.task;
@@ -63,31 +98,51 @@ app.post('/add', function (req, res, next) {
         return true;
     };
 
+    var addTask = function(task) {
+        tasks.addTask(task,function(err,taskId){
+            if (err)
+            {
+                logger.logError('Error occurred adding a task: '+err,task);
+                sdc.incrMetric('addTaskError');
+                returnErrorJson(res, err);
+            }
+            else
+            {
+                sdc.incrMetric('addTaskSuccess');
+                returnSuccessJson(res, { id: taskId, success: true, message: 'Task added' });
+            }
+
+        });
+    };
+
     authenticate(req, res, function(jwt){
 
         // check requirements for adding a thing
-        if (task && (typeof task == 'object' || typeof task == 'string' && isJSON(isJSON)))
+        if (task && (typeof task == 'object' || (typeof task == 'string' && isJSON(task)) ))
         {
 
-            tasks.addTask(task,function(err,taskId){
-                if (err)
-                {
-                    //logger.logError('Error occurred adding a task',task);
-                    sdc.incrMetric('addTaskError');
-                    returnErrorJson(res, err);
-                }
-                else
-                {
-                    sdc.incrMetric('addTaskSuccess');
-                    returnSuccessJson(res, { id: taskId, success: true, message: 'Task added' });
-                }
+            if (typeof task == 'string')
+            {
+                task = JSON.parse(task);
+            }
 
-            });
+            if (task.snsTask)
+            {
+                snsMap.getTarget(task.snsTask,function(err,taskInfo){
+                    task = _.extend(task,{ snsTarget: taskInfo.snsTarget });
+                    delete task.snsTask;
+                    addTask(task);
+                });
+            }
+            else
+            {
+                addTask(task);
+            }
 
         }
         else
         {
-            returnError(res, 'no task specified, or not a valid object wtf?!');
+            returnError(res, 'no task specified, or not a valid object?!');
         }
 
     });
