@@ -99,19 +99,28 @@ app.post('/add', function (req, res, next) {
     };
 
     var addTask = function(task) {
-        tasks.addTask(task,function(err,taskId){
+        tasks.checkForDuplicateRefId(task.refId, function(err, exists) {
             if (err)
             {
-                logger.logError('Error occurred adding a task: '+err,task);
-                sdc.incrMetric('addTaskError');
                 returnErrorJson(res, err);
             }
             else
             {
-                sdc.incrMetric('addTaskSuccess');
-                returnSuccessJson(res, { id: taskId, success: true, message: 'Task added' });
-            }
+                tasks.addTask(task,function(err,taskId){
+                    if (err)
+                    {
+                        logger.logError('Error occurred adding a task: '+err,task);
+                        sdc.incrMetric('addTaskError');
+                        returnErrorJson(res, err);
+                    }
+                    else
+                    {
+                        sdc.incrMetric('addTaskSuccess');
+                        returnSuccessJson(res, { id: taskId, success: true, message: 'Task added' });
+                    }
 
+                });
+            }
         });
     };
 
@@ -201,6 +210,37 @@ app.get('/is/:id', function(req, res, next) {
 
 });
 
+app.get('/isbyref/:refid', function(req, res, next) {
+
+    tasks.getTaskByRef(req.params.refid, function(err, data){
+        if(err)
+        {
+            returnErrorJson(res, 'Error retrieving task')
+        }
+        else
+        {
+            try
+            {
+                if(data.Items.length === 0)
+                {
+                    returnNotFound(res, 'Task does not exist');
+                    res.status(404)
+                }
+                else
+                {
+                    returnSuccessJson(res, {task: data.Items[0], success: true, message: 'Task Found'})
+                }
+            }
+            catch (e)
+            {
+                returnErrorJson(res, e.message);
+            }
+
+        }
+    });
+
+});
+
 app.get('/health-check', function(req, res, next) {
 
     if(child)
@@ -211,6 +251,25 @@ app.get('/health-check', function(req, res, next) {
     {
         returnErrorJson(res, 'Snooze is sad, Runner is down right now');
     }
+
+});
+
+app.put('/task/:id', function(req, res, next) {
+
+    var newTaskInfo = req.body.task;
+    console.log('Task info being sent up : ', newTaskInfo);
+
+    tasks.updateTask(req.params.id, newTaskInfo,function(err, data) {
+        if(err)
+        {
+            returnErrorJson(res, 'Task not updated correctly');
+        }
+        else
+        {
+            returnSuccessJson(res, {task : data.Attributes, success: true, message: 'Task successfully Updated'});
+        }
+
+    });
 
 });
 
@@ -241,6 +300,12 @@ function returnErrorJson(res,message,data)
 {
     data = data || null;
     res.status(500).json({message : message, data:data, success: false});
+}
+
+function returnNotFound(res, message, data)
+{
+    data = data || null;
+    res.status(404).json({ message : message, data : data, success : false})
 }
 
 function returnSuccess(res,msg)
