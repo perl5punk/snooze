@@ -254,6 +254,13 @@ app.get('/health-check', function(req, res, next) {
 
 });
 
+app.get('/status-codes', function(req, res, next) {
+
+    var taskStatuses = { PENDING: tasks.PENDING, QUEUED: tasks.QUEUED, RUNNING: tasks.RUNNING, CANCELED: tasks.CANCELED, ERROR: tasks.ERROR, SUCCESS: tasks.SUCCESS, UNKNOWN: tasks.UNKNOWN  };
+    returnSuccessJson(res, {message: 'Task Statuses', status: taskStatuses });
+
+});
+
 app.put('/task/:id', function(req, res, next) {
 
     var newTaskInfo = req.body.task;
