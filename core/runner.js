@@ -55,7 +55,7 @@ Runner.prototype.startTask = function(task)
                     if (data.result)
                     {
                         //console.info(data);
-                        tasks.updateTask(task.id, data,function(err,data){
+                        tasks.updateTask(task.id, data, function(err,data){
                             err && console.log(err);
                         });
                     }
@@ -75,13 +75,11 @@ Runner.prototype.startTask = function(task)
 
                     if (code)
                     {
-
                         // might need to clean-up tasks if it didn't exit successfully
                         console.log("child runtask exited, NO GOOD "+code);
                         tasks.setStatus(task.id, code, function(err,data){
-                            console.log("child runtask exit status set "+err,data);
+                            console.log("child runtask exit status set "+err, data);
                         });
-
                     }
                     else
                     {
