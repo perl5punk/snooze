@@ -10,6 +10,11 @@ if (process.env.AWS_ACCESS_KEY)
 }
 var sns = new AWS.SNS(snsParameters);
 
+process.on('uncaughtException', function(err) {
+    process.send({ result: 'uncaughtException [runTask]: '+err.message });
+    process.exit(tasks.ERROR);
+});
+
 process.on('message', function(task){
 
     console.info('CHILD got message:', task);
