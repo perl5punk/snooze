@@ -257,7 +257,7 @@ app.get('/health-check', function(req, res, next) {
 app.put('/task/:id', function(req, res, next) {
 
     var newTaskInfo = req.body.task;
-    console.log('Task info being sent up : ', newTaskInfo);
+    console.info('Task info being updated : ', newTaskInfo);
 
     tasks.updateTask(req.params.id, newTaskInfo,function(err, data) {
         if(err)
