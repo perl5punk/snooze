@@ -172,6 +172,17 @@ Tasks.prototype.getTasksToRun = function(callback)
 
 };
 
+Tasks.prototype.getClientTasksByStatus = function (status, clientId, callback)
+{
+    this.getTasks({
+        IndexName: 'status-clientId-index',
+        KeyConditions: [
+            this.dynamo.Condition("clientId", "EQ", clientId),
+            this.dynamo.Condition("status", "EQ", status)
+        ]
+    },callback);
+};
+
 Tasks.prototype.getTask = function(id, callback)
 {
 
@@ -208,7 +219,6 @@ Tasks.prototype.getTaskByRef = function (refId,callback)
         callback('Reference ID is required!');
     }
 
-    var nowTs = Math.floor(Date.now()/1000);
     this.getTasks({
         IndexName: 'refId-index',
         KeyConditions: [
@@ -225,7 +235,6 @@ Tasks.prototype.getTasksByClient = function (clientId,callback)
         callback('client ID is required!');
     }
 
-    var nowTs = Math.floor(Date.now()/1000);
     this.getTasks({
         IndexName: 'clientId-index',
         KeyConditions: [
@@ -334,6 +343,21 @@ Tasks.prototype.makeTable = function()
                     IndexName: 'clientId-index',
                     KeySchema: [
                         {AttributeName: 'clientId',   KeyType: 'HASH'}
+                    ],
+                    Projection: {
+                        ProjectionType:'ALL'
+                    },
+                    ProvisionedThroughput: {
+                        ReadCapacityUnits: 10,
+                        WriteCapacityUnits: 5
+                    }
+                },
+                {
+                    IndexName: 'status-clientId-index',
+                    KeySchema: [
+                        {AttributeName: 'clientId',   KeyType: 'HASH'},
+                        {AttributeName: 'status',     KeyType: 'RANGE'}
+
                     ],
                     Projection: {
                         ProjectionType:'ALL'
