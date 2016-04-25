@@ -24,11 +24,11 @@ var runner      = require('./core/runner');
 process.on('uncaughtException',function(err){
     try
     {
-        logger.logError('uncaughtException: '+err.message,err.stack);
+        logger.logError('uncaughtException: '+err.message);
     }
     catch (e)
     {
-        console.log('uncaughtException: '+err.message,err.stack);
+        console.error(err.message, err.stack);
     }
     //process.exit(1);
 });
