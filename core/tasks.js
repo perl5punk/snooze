@@ -58,7 +58,7 @@ Tasks.prototype.addTask = function(task,callback)
     var itemRecord = _.extend({
         id: guid.create().value,
         ts: 0,
-        status: 0,
+        status: this.QUEUED,
         added_timestamp: Math.floor(Date.now()/1000),
         clientId : ""
     },task);

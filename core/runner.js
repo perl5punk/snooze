@@ -1,5 +1,5 @@
 var urlParser   = require('url');
-var logger      = require('../util/logger');
+//var logger      = require('../util/logger');
 var tasks       = require('./tasks');
 
 const fork = require('child_process').fork;
@@ -51,11 +51,10 @@ Runner.prototype.startTask = function(task)
                 childProcess.on('message', function(data) {
 
                     // this will be logged
-                    //console.info('Got a message from the child; '+data);
+                    console.debug('Got a message from the child; '+data);
                     if (data.result)
                     {
-                        //console.info(data);
-                        tasks.updateTask(task.id, data,function(err,data){
+                        tasks.updateTask(task.id, data, function(err,data){
                             err && console.log(err);
                         });
                     }
@@ -64,7 +63,7 @@ Runner.prototype.startTask = function(task)
                 childProcess.on('error', function(err) {
 
                     // this will be logged
-                    console.error(err);
+                    console.error('child process error '+err);
                     if (err)
                     {
                         tasks.updateTask(task.id, { error: err });
@@ -75,13 +74,11 @@ Runner.prototype.startTask = function(task)
 
                     if (code)
                     {
-
                         // might need to clean-up tasks if it didn't exit successfully
-                        console.log("child runtask exited, NO GOOD "+code);
+                        console.log("child runtask exited, NO GOOD? "+code+"\n");
                         tasks.setStatus(task.id, code, function(err,data){
-                            console.log("child runtask exit status set "+err,data);
+                            console.log("child runtask exit status set "+err, data);
                         });
-
                     }
                     else
                     {

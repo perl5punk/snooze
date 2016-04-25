@@ -10,14 +10,18 @@ if (process.env.AWS_ACCESS_KEY)
 }
 var sns = new AWS.SNS(snsParameters);
 
+process.on('uncaughtException', function(err) {
+    process.send({ result: 'uncaughtException [runTask]: '+err.message });
+    process.exit(tasks.ERROR);
+});
+
 process.on('message', function(task){
 
-    //console.log('CHILD got message:', task);
+    console.info('CHILD got message:', task);
 
-    if (task)
-    {
+    try {
 
-        if (task.url)
+        if (task && task.url)
         {
             var httpRequest = https.get(task.url, function(res) {
 
@@ -53,15 +57,15 @@ process.on('message', function(task){
                 Message: JSON.stringify(task.payload),
                 Subject: 'SnoozeNotification'
             };
-            sns.publish(parameters,function(err,data){
+            sns.publish(parameters,function(err, data){
                 if (err)
                 {
-                    process.send({ result: 'I published an SNS, got an error... '+err });
+                    process.send({ result: 'Error while trying to publish SNS Message... '+err });
                     process.exit(tasks.ERROR);
                 }
                 else
                 {
-                    process.send({ result: 'I published a task SNS... '+data });
+                    process.send({ result: 'Published SNS Message... '+data });
                     process.exit(0);
                 }
             });
@@ -73,9 +77,10 @@ process.on('message', function(task){
         }
 
     }
-    else
+    catch (e)
     {
-        process.exit(tasks.UNKNOWN);
+        process.send({ result: 'Exception occurred in child '+e });
+        process.exit(tasks.ERROR);
     }
 
 });
