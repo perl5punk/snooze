@@ -138,9 +138,17 @@ app.post('/add', function (req, res, next) {
             if (task.snsTask)
             {
                 snsMap.getTarget(task.snsTask,function(err,taskInfo){
-                    task = _.extend(task,{ snsTarget: taskInfo.snsTarget });
-                    delete task.snsTask;
-                    addTask(task);
+                    if (err || !taskInfo.snsTarget)
+                    {
+                        logger.logError('Failed to retrieve snsTask Target for '+task.snsTask);
+                        returnError(res, 'Failed to retrieve snsTask Target for '+task.snsTask);
+                    }
+                    else
+                    {
+                        task = _.extend(task,{ snsTarget: taskInfo.snsTarget });
+                        delete task.snsTask;
+                        addTask(task);
+                    }
                 });
             }
             else
