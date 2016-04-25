@@ -51,7 +51,7 @@ Runner.prototype.startTask = function(task)
                 childProcess.on('message', function(data) {
 
                     // this will be logged
-                    console.debug('Got a message from the child; '+data);
+                    console.log('Got a message from the child; '+data);
                     if (data.result)
                     {
                         tasks.updateTask(task.id, data, function(err,data){

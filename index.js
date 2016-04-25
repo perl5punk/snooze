@@ -215,7 +215,7 @@ app.get('/isbyref/:refid', function(req, res, next) {
     tasks.getTaskByRef(req.params.refid, function(err, data){
         if(err)
         {
-            returnErrorJson(res, 'Error retrieving task')
+            returnErrorJson(res, 'Error retrieving task');
         }
         else
         {
@@ -228,14 +228,42 @@ app.get('/isbyref/:refid', function(req, res, next) {
                 }
                 else
                 {
-                    returnSuccessJson(res, {task: data.Items[0], success: true, message: 'Task Found'})
+                    returnSuccessJson(res, {task: data.Items[0], success: true, message: 'Task Found'});
                 }
             }
             catch (e)
             {
                 returnErrorJson(res, e.message);
             }
+        }
+    });
 
+});
+
+app.get('/tasks/:clientid', function(req, res, next) {
+
+    tasks.getTasksByClient(req.params.clientid, function(err, data) {
+        if (err)
+        {
+            returnErrorJson(res, 'Error retrieving tasks');
+        }
+        else
+        {
+            try
+            {
+                if (data.Items.length === 0)
+                {
+                    returnNotFound(res, 'No tasks for that client');
+                }
+                else
+                {
+                    returnSuccessJson(res, {tasks : data.Items, success: true, message: 'Tasks Found'});
+                }
+            }
+            catch(e)
+            {
+                returnErrorJson(res, e.message);
+            }
         }
     });
 
