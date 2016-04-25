@@ -90,10 +90,11 @@ describe('Snooze Test Suite', function() {
                 .post('/add')
                 .set(process.env.JWT_HEADER, token)
                 .send({ task:
-                    {
-                        ts: date + 10000,
-                        url: 'https://www.google.com'
-                    }
+                {
+                    ts: date + 10000,
+                    url: 'https://www.google.com',
+                    clientId: '12345'
+                }
                 })
                 .expect(function(res){
                     editID = res.body.id;
@@ -178,7 +179,7 @@ describe('Snooze Test Suite', function() {
                     }
                     else if (!res.body.task.ts || !res.body.task.status || !res.body.task.added_timestamp)
                     {
-                           throw new Error('Missing Task Information');
+                        throw new Error('Missing Task Information');
                     }
                     else
                     {
@@ -248,11 +249,11 @@ describe('Snooze Test Suite', function() {
         {
             if(url)
             {
-                var payload = {task : {url : url, ts: (Date.now()/1000) + delay, refId : refId}};
+                var payload = {task : {url : url, ts: (Date.now()/1000) + delay, refId : refId, clientId: '1234'}};
             }
             else
             {
-                var payload = {task : {ts: (Date.now()/1000) + delay, refId : refId}};
+                var payload = {task : {ts: (Date.now()/1000) + delay, refId : refId, clientId: '1234'}};
             }
             request(snooze)
                 .post('/add')
@@ -395,7 +396,8 @@ describe('Snooze Test Suite', function() {
                     ts: date + 10000,
                     url: 'https://www.google.com',
                     status : 0,
-                    refId: '12345'
+                    refId: '12345',
+                    clientId : 'abcde'
                 }
                 })
                 .expect(200)
@@ -434,22 +436,22 @@ describe('Snooze Test Suite', function() {
         });
 
         it('should get task given a reference id', function(done) {
-           request(snooze)
-               .get('/isbyref/' + refId)
-               .expect(200)
-               .end(function(err, res) {
-                   if(err) throw err;
-                   console.log(res.body);
-                   if(res.body.task.id !== taskId || res.body.task.refId !== refId)
-                   {
-                       throw new Error ('incorrect reference id or task id returned')
-                   }
-                   else
-                   {
-                       done();
-                       return true;
-                   }
-               });
+            request(snooze)
+                .get('/isbyref/' + refId)
+                .expect(200)
+                .end(function(err, res) {
+                    if(err) throw err;
+                    console.log(res.body);
+                    if(res.body.task.id !== taskId || res.body.task.refId !== refId)
+                    {
+                        throw new Error ('incorrect reference id or task id returned')
+                    }
+                    else
+                    {
+                        done();
+                        return true;
+                    }
+                });
         });
 
     });
@@ -464,11 +466,12 @@ describe('Snooze Test Suite', function() {
                 .post('/add')
                 .set(process.env.JWT_HEADER, token)
                 .send({ task:
-                    {
-                        ts: date + 10000,
-                        url: 'https://www.google.com',
-                        refId: '11111'
-                    }
+                {
+                    ts: date + 10000,
+                    url: 'https://www.google.com',
+                    refId: '11111',
+                    clientId: 'abcde'
+                }
                 })
                 .end(function(err, res) {
                     taskId = res.body.id;
@@ -483,14 +486,14 @@ describe('Snooze Test Suite', function() {
                 .put('/task/' + taskId)
                 .set(process.env.JWT_HEADER, token)
                 .send({ task :
-                    {
-                        refId: '67890',
-                        ts: newTs
-                    }
+                {
+                    refId: '67890',
+                    ts: newTs
+                }
                 })
                 .expect(200)
                 .end(function(err, res) {
-                   if(err) throw err;
+                    if(err) throw err;
                     if(res.body.task.refId !== '67890')
                     {
                         throw new Error ('the reference Id hasn\'t been updated')
@@ -523,7 +526,8 @@ describe('Snooze Test Suite', function() {
                 {
                     ts: date + 10000,
                     url: 'https://www.google.com',
-                    refId: refId
+                    refId: refId,
+                    clientId: 'abcde'
                 }
                 })
                 .end(function(err, res) {
@@ -541,7 +545,8 @@ describe('Snooze Test Suite', function() {
                 {
                     ts: date + 10000,
                     url: 'https://www.google.com',
-                    refId: refId
+                    refId: refId,
+                    clientId: 'abcde'
                 }
                 })
                 .expect(500)
@@ -575,6 +580,7 @@ describe('Snooze Test Suite', function() {
                     ts: date + 1000,
                     refId : '12093',
                     snsTarget : 'arn:aws:sns:us-east-1:286550000000:snooze-test',
+                    clientId: 'abcde',
                     payload :
                     {
                         email : 'bradleyjamesbouley@gmail.com',
