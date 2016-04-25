@@ -1,5 +1,6 @@
 var https       = require('https');
 var AWS         = require('aws-sdk');
+var logger      = require('../util/logger');
 var tasks       = require('./tasks');
 
 var snsParameters = { region: process.env.AWS_REGION };
@@ -11,13 +12,15 @@ if (process.env.AWS_ACCESS_KEY)
 var sns = new AWS.SNS(snsParameters);
 
 process.on('uncaughtException', function(err) {
+    logger.logError('[CHILD] uncaughtException [runTask]: '+err.message);
     process.send({ result: 'uncaughtException [runTask]: '+err.message });
     process.exit(tasks.ERROR);
 });
 
 process.on('message', function(task){
 
-    console.info('CHILD got message:', task);
+    //console.info('CHILD got message:', task);
+    logger.logInfo('[CHILD] received a message', task);
 
     try {
 
@@ -33,17 +36,16 @@ process.on('message', function(task){
                     body.push(chunk);
                 }).on('end', function() {
                     body = body.toString();
-
                     //console.log(body);
                     process.send({ result: body });
                     process.exit(0);
-
                 });
 
             });
             httpRequest.end();
             httpRequest.on('error', function(e) {
 
+                logger.logError('[CHILD] HTTP Request Error: '+e);
                 process.send({ result: 'I ran a task url, got an error... '+e });
                 process.exit(tasks.ERROR);
 
@@ -60,6 +62,7 @@ process.on('message', function(task){
             sns.publish(parameters,function(err, data){
                 if (err)
                 {
+                    logger.logError('[CHILD] Error while trying to publish SNS Message... '+err);
                     process.send({ result: 'Error while trying to publish SNS Message... '+err });
                     process.exit(tasks.ERROR);
                 }
@@ -79,6 +82,7 @@ process.on('message', function(task){
     }
     catch (e)
     {
+        logger.logError('[CHILD] Exception occurred '+e);
         process.send({ result: 'Exception occurred in child '+e });
         process.exit(tasks.ERROR);
     }
