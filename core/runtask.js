@@ -13,13 +13,13 @@ var sns = new AWS.SNS(snsParameters);
 
 process.on('uncaughtException', function(err) {
     logger.logError('[CHILD] uncaughtException [runTask]: '+err.message);
-    process.send({ result: 'uncaughtException [runTask]: '+err.message });
+    process.send({ result: '[CHILD] uncaughtException [runTask]: '+err.message });
     process.exit(tasks.ERROR);
 });
 
 process.on('message', function(task){
 
-    //console.info('CHILD got message:', task);
+    console.info('[CHILD] got message:', task);
     logger.logInfo('[CHILD] received a message', task);
 
     try {

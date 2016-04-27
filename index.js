@@ -276,6 +276,38 @@ app.get('/tasks/:clientid', function(req, res, next) {
 
 });
 
+app.get('/tasks/:clientid/status/:taskstatus', function(req, res, next) {
+
+    var taskStatus = parseInt(req.params.taskstatus);
+    var clientId = req.params.clientid;
+
+    tasks.getClientTasksByStatus(taskStatus, clientId, function(err, data) {
+        if (err)
+        {
+            returnErrorJson(res, 'Error retrieving tasks');
+        }
+        else
+        {
+            try
+            {
+                if (data.Items.length === 0)
+                {
+                    returnNotFound(res, 'No tasks for that client/with that status');
+                }
+                else
+                {
+                    returnSuccessJson(res, {tasks : data.Items, success: true, message: 'Tasks Found'});
+                }
+            }
+            catch(e)
+            {
+                returnErrorJson(res, e.message);
+            }
+        }
+    });
+
+});
+
 app.get('/health-check', function(req, res, next) {
 
     if(child)
