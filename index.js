@@ -232,7 +232,6 @@ app.get('/isbyref/:refid', function(req, res, next) {
                 if(data.Items.length === 0)
                 {
                     returnNotFound(res, 'Task does not exist');
-                    res.status(404)
                 }
                 else
                 {
@@ -375,7 +374,7 @@ child.start();
 
 function runnerExited()
 {
-    console.log('Tell something that the main runner exited, please!');
+    logger.logError('WARNING: Snooze main runner exited! Was this expected?');
 }
 function runnerStarted()
 {
