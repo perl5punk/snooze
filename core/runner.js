@@ -13,7 +13,7 @@ process.on('uncaughtException',function(err){
     }
     catch (e)
     {
-        console.error(err.message, err.stack);
+        console.error('[RUNNER] uncaughtException Exception '+e);
     }
 });
 
