@@ -2,6 +2,7 @@ var AWS = require('aws-sdk');
 var doc = require('dynamodb-doc');
 var _ = require('underscore');
 var guid = require('guid');
+var https = require('https');
 
 var ddbTableName = process.env.ENVIRONMENT + '_SnoozeTasks';
 
@@ -274,7 +275,16 @@ Tasks.prototype.getDynamo = function() {
             endpoint: process.env.DYNAMO_ENDPOINT,
             accessKeyId: process.env.AWS_ACCESS_KEY,
             secretAccessKey: process.env.AWS_SECRET_KEY,
-            region: process.env.AWS_REGION
+            region: process.env.AWS_REGION,
+            // work around for [NetworkingError: write EPROTO] https://github.com/aws/aws-sdk-js/issues/862
+            httpOptions: {
+                agent: new https.Agent({
+                    rejectUnauthorized: true,
+                    keepAlive: true,                // workaround part i.
+                    secureProtocol: "TLSv1_method", // workaround part ii.
+                    ciphers: "ALL"                  // workaround part ii.
+                })
+            }
         });
         this.dynamo = new doc.DynamoDB(dynamo);
     }

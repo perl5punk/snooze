@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/bombbomb/snooze",
   "dependencies": {
-    "aws-sdk": "^2.2.32",
+    "aws-sdk": "^2.3.6",
     "bbjwt-client": "^0.1.2",
     "body-parser": "^1.15.0",
     "cookie-parser": "^1.4.1",
@@ -25,6 +25,7 @@
     "express": "^4.13.4",
     "forever": "^0.15.1",
     "guid": "0.0.12",
+    "https": "^1.0.0",
     "jsonwebtoken": "^5.7.0",
     "node-elk-logger": "^0.1.5",
     "statsd-client": "^0.2.1",
