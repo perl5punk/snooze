@@ -1,8 +1,7 @@
 var urlParser   = require('url');
 var logger      = require('../util/logger');
 var tasks       = require('./tasks');
-
-const fork = require('child_process').fork;
+var fork        = require('child_process').fork;
 
 var seekInterval = ((process.env.RUN_INTERVAL || 5) * 1000); // 5 second default
 
@@ -23,7 +22,7 @@ function Runner()
     var me = this;
     var runTimer = setInterval(function(){
         me.startTasksToRun();
-    },seekInterval);
+    }, seekInterval);
 
 }
 
