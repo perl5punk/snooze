@@ -271,21 +271,26 @@ Tasks.prototype.getDynamo = function() {
 
     if(typeof this.dynamo === 'undefined')
     {
-        var dynamo = new AWS.DynamoDB({
+        var dynamoConfig = {
             endpoint: process.env.DYNAMO_ENDPOINT,
             accessKeyId: process.env.AWS_ACCESS_KEY,
             secretAccessKey: process.env.AWS_SECRET_KEY,
-            region: process.env.AWS_REGION,
+            region: process.env.AWS_REGION
+        };
+        // this breaks the tests and isn't needed anyway
+        if (process.env.ENVIRONMENT !== "Tests")
+        {
             // work around for [NetworkingError: write EPROTO] https://github.com/aws/aws-sdk-js/issues/862
-            httpOptions: {
+            dynamoConfig.httpOptions = {
                 agent: new https.Agent({
                     rejectUnauthorized: true,
                     keepAlive: true,                // workaround part i.
                     secureProtocol: "TLSv1_method", // workaround part ii.
                     ciphers: "ALL"                  // workaround part ii.
                 })
-            }
-        });
+            };
+        }
+        var dynamo = new AWS.DynamoDB(dynamoConfig);
         this.dynamo = new doc.DynamoDB(dynamo);
     }
 
