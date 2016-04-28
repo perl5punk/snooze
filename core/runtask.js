@@ -29,8 +29,6 @@ process.on('message', function(task){
             var httpRequest = https.get(task.url, function(res) {
 
                 var body = [];
-                //console.log('statusCode: ', res.statusCode);
-                //console.log('headers: ', res.headers);
 
                 res.on('data', function(chunk) {
                     body.push(chunk);
