@@ -9,17 +9,24 @@ if (process.env.AWS_ACCESS_KEY)
     snsParameters.accessKeyId = process.env.AWS_ACCESS_KEY;
     snsParameters.secretAccessKey = process.env.AWS_SECRET_KEY;
 }
-var sns = new AWS.SNS(snsParameters);
+try
+{
+    var sns = new AWS.SNS(snsParameters);
+}
+catch (e)
+{
+    logger.logError('[CHILD] Failed to setup SNS : '+e);
+    process.send({ result: '[CHILD] Failed to setup SNS '+e });
+}
 
 process.on('uncaughtException', function(err) {
-    logger.logError('[CHILD] uncaughtException [runTask]: '+err.message);
-    process.send({ result: '[CHILD] uncaughtException [runTask]: '+err.message });
+    logger.logError('[CHILD] uncaughtException: '+err.message);
+    process.send({ result: '[CHILD] uncaughtException: '+err.message });
     process.exit(tasks.ERROR);
 });
 
 process.on('message', function(task){
 
-    console.info('[CHILD] got message:', task);
     logger.logInfo('[CHILD] received a message', task);
 
     try {
@@ -44,7 +51,7 @@ process.on('message', function(task){
             httpRequest.on('error', function(e) {
 
                 logger.logError('[CHILD] HTTP Request Error: '+e);
-                process.send({ result: 'I ran a task url, got an error... '+e });
+                process.send({ result: '[CHILD] HTTP Request Error'+e });
                 process.exit(tasks.ERROR);
 
             });
@@ -66,7 +73,7 @@ process.on('message', function(task){
                 }
                 else
                 {
-                    process.send({ result: 'Published SNS Message... '+data });
+                    process.send({ result: 'Published SNS Message; '+data });
                     process.exit(0);
                 }
             });
