@@ -26,7 +26,7 @@
     "forever": "^0.15.1",
     "guid": "0.0.12",
     "jsonwebtoken": "^5.7.0",
-    "node-elk-logger": "^0.1.4",
+    "node-elk-logger": "^0.1.5",
     "statsd-client": "^0.2.1",
     "underscore": "^1.8.3"
   },
