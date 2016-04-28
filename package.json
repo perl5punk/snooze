@@ -1,6 +1,6 @@
 {
   "name": "snooze",
-  "version": "1.0.0",
+  "version": "1.2.1",
   "description": "it does stuff later",
   "main": "snooze.lambda.js",
   "scripts": {
