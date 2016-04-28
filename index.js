@@ -418,4 +418,4 @@ if (process.env.TEST_RUNNER)
     module.exports = { app: app, runner: child };
 }
 
-
+logger.logWarning('Snooze Started Successfully!');
