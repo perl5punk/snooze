@@ -1,4 +1,5 @@
 var urlParser   = require('url');
+var path        = require('path');
 var logger      = require('../util/logger');
 var tasks       = require('./tasks');
 var fork        = require('child_process').fork;
@@ -62,7 +63,11 @@ Runner.prototype.startTask = function(task)
                     logger.logError('[RUNNER] '+task.id+' Error occurred updating status before run; '+err,data);
                 }
 
-                var childProcess = fork('./runtask');
+                var modulePath = __dirname+path.sep+'runtask';
+                if (process.env.TEST_RUNNER) {
+                    modulePath = './core/runtask';
+                }
+                var childProcess = fork(modulePath);
                 childProcess.send( task );
                 childProcess.on('message', function(data) {
 
