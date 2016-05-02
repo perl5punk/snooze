@@ -6,25 +6,27 @@ process.on('uncaughtException', function(err) {
     process.exit(tasks.ERROR);
 });
 
-var https       = require('https');
-var AWS         = require('aws-sdk');
-var logger      = require('./../util/logger');
-var tasks       = require('./tasks');
-
-var snsParameters = { region: process.env.AWS_REGION };
-if (process.env.AWS_ACCESS_KEY)
-{
-    snsParameters.accessKeyId = process.env.AWS_ACCESS_KEY;
-    snsParameters.secretAccessKey = process.env.AWS_SECRET_KEY;
-}
 try
 {
+    var https       = require('https');
+    var AWS         = require('aws-sdk');
+    var logger      = require('./../util/logger');
+    var tasks       = require('./tasks');
+
+    var snsParameters = { region: process.env.AWS_REGION };
+    if (process.env.AWS_ACCESS_KEY)
+    {
+        snsParameters.accessKeyId = process.env.AWS_ACCESS_KEY;
+        snsParameters.secretAccessKey = process.env.AWS_SECRET_KEY;
+    }
+
     var sns = new AWS.SNS(snsParameters);
 }
 catch (e)
 {
-    logger.logError('[CHILD] Failed to setup SNS : '+e);
-    process.send({ result: '[CHILD] Failed to setup SNS '+e });
+    logger.logError('[CHILD] Failed on Inital Setup : '+e);
+    console.error('[CHILD] Failed on Inital Setup: '+e);
+    process.send({ result: '[CHILD] Failed on Inital Setup '+e });
 }
 
 process.on('message', function(task){
