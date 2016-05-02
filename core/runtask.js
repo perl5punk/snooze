@@ -1,11 +1,4 @@
 
-process.on('uncaughtException', function(err) {
-    //logger.logError('[CHILD] uncaughtException: '+err.message);
-    console.error('[CHILD] uncaughtException: '+err);
-    process.send({ result: '[CHILD] uncaughtException: '+err.message });
-    process.exit(tasks.ERROR);
-});
-
 try
 {
     var https       = require('https');
@@ -28,6 +21,13 @@ catch (e)
     console.error('[CHILD] Failed on Inital Setup: '+e);
     process.send({ result: '[CHILD] Failed on Inital Setup '+e });
 }
+
+process.on('uncaughtException', function(err) {
+    logger.logError('[CHILD] uncaughtException: '+err.message);
+    console.error('[CHILD] uncaughtException: '+err);
+    process.send({ result: '[CHILD] uncaughtException: '+err.message });
+    process.exit(tasks.ERROR);
+});
 
 process.on('message', function(task){
 
