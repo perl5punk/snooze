@@ -1,6 +1,13 @@
+
+var logger      = require('./../util/logger');
+process.on('uncaughtException', function(err) {
+    logger.logError('[CHILD] uncaughtException: '+err.message);
+    process.send({ result: '[CHILD] uncaughtException: '+err.message });
+    process.exit(tasks.ERROR);
+});
+
 var https       = require('https');
 var AWS         = require('aws-sdk');
-var logger      = require('../util/logger');
 var tasks       = require('./tasks');
 
 var snsParameters = { region: process.env.AWS_REGION };
@@ -18,12 +25,6 @@ catch (e)
     logger.logError('[CHILD] Failed to setup SNS : '+e);
     process.send({ result: '[CHILD] Failed to setup SNS '+e });
 }
-
-process.on('uncaughtException', function(err) {
-    logger.logError('[CHILD] uncaughtException: '+err.message);
-    process.send({ result: '[CHILD] uncaughtException: '+err.message });
-    process.exit(tasks.ERROR);
-});
 
 process.on('message', function(task){
 
