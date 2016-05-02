@@ -92,15 +92,24 @@ Runner.prototype.startTask = function(task)
                         // might need to clean-up tasks if it didn't exit successfully
                         logger.logWarning('[RUNNER] '+task.id+' child process exited with code '+code);
                         tasks.setStatus(task.id, code, function(err,data){
-                            console.log("child runtask exit status set "+err, data);
+                            if (err)
+                            {
+                                console.log("child runtask exit status set; FAILED; "+err, data);
+                            }
                         });
                     }
                     else
                     {
                         tasks.setStatus(task.id, tasks.SUCCESS, function(err,data){
-                            console.log("child runtask exit status set "+err,data);
+                            if (err)
+                            {
+                                console.log("child runtask exit status set; FAILED; "+err, data);
+                            }
+                            else
+                            {
+                                logger.logInfo('[RUNNER] '+task.id+' child process exited, all good');
+                            }
                         });
-                        logger.logInfo('[RUNNER] '+task.id+' child process exited, all good');
                     }
 
                 });
