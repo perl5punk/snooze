@@ -24,7 +24,7 @@ var runner      = require('./core/runner');
 process.on('uncaughtException',function(err){
     try
     {
-        logger.logError('uncaughtException: '+err.message);
+        logger.logError('[INDEX] uncaughtException: '+err.message);
     }
     catch (e)
     {
