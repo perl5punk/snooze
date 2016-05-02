@@ -62,7 +62,7 @@ Runner.prototype.startTask = function(task)
                     logger.logError('[RUNNER] '+task.id+' Error occurred updating status before run; '+err,data);
                 }
 
-                var childProcess = fork('./core/runtask');
+                var childProcess = fork('./../core/runtask');
                 childProcess.send( task );
                 childProcess.on('message', function(data) {
 
