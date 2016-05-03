@@ -1,46 +1,61 @@
-var https       = require('https');
-var AWS         = require('aws-sdk');
-var tasks       = require('./tasks');
 
-var snsParameters = { region: process.env.AWS_REGION };
-if (process.env.AWS_ACCESS_KEY)
+try
 {
-    snsParameters.accessKeyId = process.env.AWS_ACCESS_KEY;
-    snsParameters.secretAccessKey = process.env.AWS_SECRET_KEY;
+    var https       = require('https');
+    var AWS         = require('aws-sdk');
+    var logger      = require('./../util/logger');
+    var tasks       = require('./tasks');
+
+    var snsParameters = { region: process.env.AWS_REGION };
+    if (process.env.AWS_ACCESS_KEY)
+    {
+        snsParameters.accessKeyId = process.env.AWS_ACCESS_KEY;
+        snsParameters.secretAccessKey = process.env.AWS_SECRET_KEY;
+    }
+
+    var sns = new AWS.SNS(snsParameters);
 }
-var sns = new AWS.SNS(snsParameters);
+catch (e)
+{
+    logger.logError('[CHILD] Failed on Inital Setup : '+e);
+    console.error('[CHILD] Failed on Inital Setup: '+e);
+    process.send({ result: '[CHILD] Failed on Inital Setup '+e });
+}
+
+process.on('uncaughtException', function(err) {
+    logger.logError('[CHILD] uncaughtException: '+err.message);
+    console.error('[CHILD] uncaughtException: '+err);
+    process.send({ result: '[CHILD] uncaughtException: '+err.message });
+    process.exit(tasks.ERROR);
+});
 
 process.on('message', function(task){
 
-    //console.log('CHILD got message:', task);
+    logger.logInfo('[CHILD] received a message', task);
 
-    if (task)
-    {
+    try {
 
-        if (task.url)
+        if (task && task.url)
         {
             var httpRequest = https.get(task.url, function(res) {
 
                 var body = [];
-                //console.log('statusCode: ', res.statusCode);
-                //console.log('headers: ', res.headers);
 
                 res.on('data', function(chunk) {
                     body.push(chunk);
                 }).on('end', function() {
                     body = body.toString();
-
                     //console.log(body);
                     process.send({ result: body });
                     process.exit(0);
-
                 });
 
             });
             httpRequest.end();
             httpRequest.on('error', function(e) {
 
-                process.send({ result: 'I ran a task url, got an error... '+e });
+                logger.logError('[CHILD] HTTP Request Error: '+e);
+                process.send({ result: '[CHILD] HTTP Request Error'+e });
                 process.exit(tasks.ERROR);
 
             });
@@ -53,15 +68,16 @@ process.on('message', function(task){
                 Message: JSON.stringify(task.payload),
                 Subject: 'SnoozeNotification'
             };
-            sns.publish(parameters,function(err,data){
+            sns.publish(parameters,function(err, data){
                 if (err)
                 {
-                    process.send({ result: 'I published an SNS, got an error... '+err });
+                    logger.logError('[CHILD] Error while trying to publish SNS Message... '+err);
+                    process.send({ result: 'Error while trying to publish SNS Message... '+err });
                     process.exit(tasks.ERROR);
                 }
                 else
                 {
-                    process.send({ result: 'I published a task SNS... '+data });
+                    process.send({ result: 'Published SNS Message; '+data });
                     process.exit(0);
                 }
             });
@@ -73,9 +89,11 @@ process.on('message', function(task){
         }
 
     }
-    else
+    catch (e)
     {
-        process.exit(tasks.UNKNOWN);
+        logger.logError('[CHILD] Exception occurred '+e);
+        process.send({ result: 'Exception occurred in child '+e });
+        process.exit(tasks.ERROR);
     }
 
 });

@@ -24,11 +24,11 @@ var runner      = require('./core/runner');
 process.on('uncaughtException',function(err){
     try
     {
-        logger.logError('uncaughtException: '+err.message,err.stack);
+        logger.logError('[INDEX] uncaughtException: '+err.message);
     }
     catch (e)
     {
-        console.log('uncaughtException: '+err.message,err.stack);
+        console.error(e);
     }
     //process.exit(1);
 });
@@ -138,9 +138,17 @@ app.post('/add', function (req, res, next) {
             if (task.snsTask)
             {
                 snsMap.getTarget(task.snsTask,function(err,taskInfo){
-                    task = _.extend(task,{ snsTarget: taskInfo.snsTarget });
-                    delete task.snsTask;
-                    addTask(task);
+                    if (err || !taskInfo.snsTarget)
+                    {
+                        logger.logError('Failed to retrieve snsTask Target for '+task.snsTask);
+                        returnError(res, 'Failed to retrieve snsTask Target for '+task.snsTask);
+                    }
+                    else
+                    {
+                        task = _.extend(task,{ snsTarget: taskInfo.snsTarget });
+                        delete task.snsTask;
+                        addTask(task);
+                    }
                 });
             }
             else
@@ -215,7 +223,7 @@ app.get('/isbyref/:refid', function(req, res, next) {
     tasks.getTaskByRef(req.params.refid, function(err, data){
         if(err)
         {
-            returnErrorJson(res, 'Error retrieving task')
+            returnErrorJson(res, 'Error retrieving task');
         }
         else
         {
@@ -224,18 +232,77 @@ app.get('/isbyref/:refid', function(req, res, next) {
                 if(data.Items.length === 0)
                 {
                     returnNotFound(res, 'Task does not exist');
-                    res.status(404)
                 }
                 else
                 {
-                    returnSuccessJson(res, {task: data.Items[0], success: true, message: 'Task Found'})
+                    returnSuccessJson(res, {task: data.Items[0], success: true, message: 'Task Found'});
                 }
             }
             catch (e)
             {
                 returnErrorJson(res, e.message);
             }
+        }
+    });
 
+});
+
+app.get('/tasks/:clientid', function(req, res, next) {
+
+    tasks.getTasksByClient(req.params.clientid, function(err, data) {
+        if (err)
+        {
+            returnErrorJson(res, 'Error retrieving tasks');
+        }
+        else
+        {
+            try
+            {
+                if (data.Items.length === 0)
+                {
+                    returnNotFound(res, 'No tasks for that client');
+                }
+                else
+                {
+                    returnSuccessJson(res, {tasks : data.Items, success: true, message: 'Tasks Found'});
+                }
+            }
+            catch(e)
+            {
+                returnErrorJson(res, e.message);
+            }
+        }
+    });
+
+});
+
+app.get('/tasks/:clientid/status/:taskstatus', function(req, res, next) {
+
+    var taskStatus = parseInt(req.params.taskstatus);
+    var clientId = req.params.clientid;
+
+    tasks.getClientTasksByStatus(taskStatus, clientId, function(err, data) {
+        if (err)
+        {
+            returnErrorJson(res, 'Error retrieving tasks');
+        }
+        else
+        {
+            try
+            {
+                if (data.Items.length === 0)
+                {
+                    returnNotFound(res, 'No tasks for that client/with that status');
+                }
+                else
+                {
+                    returnSuccessJson(res, {tasks : data.Items, success: true, message: 'Tasks Found'});
+                }
+            }
+            catch(e)
+            {
+                returnErrorJson(res, e.message);
+            }
         }
     });
 
@@ -254,10 +321,17 @@ app.get('/health-check', function(req, res, next) {
 
 });
 
+app.get('/status-codes', function(req, res, next) {
+
+    var taskStatuses = { PENDING: tasks.PENDING, QUEUED: tasks.QUEUED, RUNNING: tasks.RUNNING, CANCELED: tasks.CANCELED, ERROR: tasks.ERROR, SUCCESS: tasks.SUCCESS, UNKNOWN: tasks.UNKNOWN  };
+    returnSuccessJson(res, {message: 'Task Statuses', status: taskStatuses });
+
+});
+
 app.put('/task/:id', function(req, res, next) {
 
     var newTaskInfo = req.body.task;
-    console.log('Task info being sent up : ', newTaskInfo);
+    console.info('Task info being updated : ', newTaskInfo);
 
     tasks.updateTask(req.params.id, newTaskInfo,function(err, data) {
         if(err)
@@ -332,7 +406,7 @@ child.start();
 
 function runnerExited()
 {
-    console.log('Tell something that the main runner exited, please!');
+    logger.logError('WARNING: Snooze main runner exited! Was this expected?');
 }
 function runnerStarted()
 {
@@ -344,4 +418,4 @@ if (process.env.TEST_RUNNER)
     module.exports = { app: app, runner: child };
 }
 
-
+logger.logWarning('Snooze Started Successfully!');

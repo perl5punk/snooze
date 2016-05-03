@@ -1,10 +1,21 @@
 var urlParser   = require('url');
+var path        = require('path');
 var logger      = require('../util/logger');
 var tasks       = require('./tasks');
-
-const fork = require('child_process').fork;
+var fork        = require('child_process').fork;
 
 var seekInterval = ((process.env.RUN_INTERVAL || 5) * 1000); // 5 second default
+
+process.on('uncaughtException',function(err){
+    try
+    {
+        logger.logError('[RUNNER] uncaughtException: '+err.message);
+    }
+    catch (e)
+    {
+        console.error('[RUNNER] uncaughtException Exception '+e);
+    }
+});
 
 function Runner()
 {
@@ -12,7 +23,7 @@ function Runner()
     var me = this;
     var runTimer = setInterval(function(){
         me.startTasksToRun();
-    },seekInterval);
+    }, seekInterval);
 
 }
 
@@ -30,7 +41,7 @@ Runner.prototype.startTasksToRun = function()
         }
         else
         {
-            console.error('startTasksToRun for getTasksToRun '+err);
+            logger.logError('[RUNNER] startTasksToRun; '+err);
         }
     });
 
@@ -46,25 +57,33 @@ Runner.prototype.startTask = function(task)
         {
 
             tasks.setStatus(task.id, tasks.RUNNING, function(err, data) {
-                var childProcess = fork('./core/runtask');
+
+                if (err)
+                {
+                    logger.logError('[RUNNER] '+task.id+' Error occurred updating status before run; '+err,data);
+                }
+
+                var modulePath = __dirname+path.sep+'runtask';
+                if (process.env.TEST_RUNNER) {
+                    modulePath = './core/runtask';
+                }
+                var childProcess = fork(modulePath);
                 childProcess.send( task );
                 childProcess.on('message', function(data) {
 
                     // this will be logged
-                    //console.info('Got a message from the child; '+data);
+                    logger.logInfo('[RUNNER] '+task.id+' message received from child;',data);
                     if (data.result)
                     {
-                        //console.info(data);
-                        tasks.updateTask(task.id, data,function(err,data){
-                            err && console.log(err);
+                        tasks.updateTask(task.id, data, function(err,data){
+                            err && logger.logError('[RUNNER] '+task.id+' Error occurred updating task; '+err,data);
                         });
                     }
 
                 });
                 childProcess.on('error', function(err) {
 
-                    // this will be logged
-                    console.error(err);
+                    logger.logError('[RUNNER] '+task.id+' child process error; '+err);
                     if (err)
                     {
                         tasks.updateTask(task.id, { error: err });
@@ -75,20 +94,27 @@ Runner.prototype.startTask = function(task)
 
                     if (code)
                     {
-
                         // might need to clean-up tasks if it didn't exit successfully
-                        console.log("child runtask exited, NO GOOD "+code);
+                        logger.logWarning('[RUNNER] '+task.id+' child process exited with code '+code);
                         tasks.setStatus(task.id, code, function(err,data){
-                            console.log("child runtask exit status set "+err,data);
+                            if (err)
+                            {
+                                console.log("child runtask exit status set; FAILED; "+err, data);
+                            }
                         });
-
                     }
                     else
                     {
                         tasks.setStatus(task.id, tasks.SUCCESS, function(err,data){
-                            console.log("child runtask exit status set "+err,data);
+                            if (err)
+                            {
+                                console.log("child runtask exit status set; FAILED; "+err, data);
+                            }
+                            else
+                            {
+                                logger.logInfo('[RUNNER] '+task.id+' child process exited, all good');
+                            }
                         });
-                        console.log("child runtask exited, all good");
                     }
 
                 });
@@ -103,7 +129,7 @@ Runner.prototype.startTask = function(task)
     }
     else
     {
-        console.error('Start called with no task..?');
+        logger.logError('[RUNNER] Start called with no task');
     }
 
 };

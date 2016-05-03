@@ -2,6 +2,7 @@ var AWS = require('aws-sdk');
 var doc = require('dynamodb-doc');
 var _ = require('underscore');
 var guid = require('guid');
+var https = require('https');
 
 var ddbTableName = process.env.ENVIRONMENT + '_SnoozeTasks';
 
@@ -58,8 +59,9 @@ Tasks.prototype.addTask = function(task,callback)
     var itemRecord = _.extend({
         id: guid.create().value,
         ts: 0,
-        status: 0,
-        added_timestamp: Math.floor(Date.now()/1000)
+        status: this.QUEUED,
+        added_timestamp: Math.floor(Date.now()/1000),
+        clientId : ""
     },task);
 
     if (typeof itemRecord.ts == "string")
@@ -171,6 +173,17 @@ Tasks.prototype.getTasksToRun = function(callback)
 
 };
 
+Tasks.prototype.getClientTasksByStatus = function (status, clientId, callback)
+{
+    this.getTasks({
+        IndexName: 'status-clientId-index',
+        KeyConditions: [
+            this.dynamo.Condition("clientId", "EQ", clientId),
+            this.dynamo.Condition("status", "EQ", status)
+        ]
+    },callback);
+};
+
 Tasks.prototype.getTask = function(id, callback)
 {
 
@@ -195,7 +208,7 @@ Tasks.prototype.getTask = function(id, callback)
         {
             return callback(null, data.Item);
         }
-            return callback(err, null);
+        return callback(err, null);
     });
 
 };
@@ -207,11 +220,26 @@ Tasks.prototype.getTaskByRef = function (refId,callback)
         callback('Reference ID is required!');
     }
 
-    var nowTs = Math.floor(Date.now()/1000);
     this.getTasks({
         IndexName: 'refId-index',
         KeyConditions: [
             this.dynamo.Condition("refId", "EQ", refId)
+        ]
+    },callback);
+
+};
+
+Tasks.prototype.getTasksByClient = function (clientId,callback)
+{
+    if(!clientId)
+    {
+        callback('client ID is required!');
+    }
+
+    this.getTasks({
+        IndexName: 'clientId-index',
+        KeyConditions: [
+            this.dynamo.Condition("clientId", "EQ", clientId)
         ]
     },callback);
 
@@ -243,12 +271,26 @@ Tasks.prototype.getDynamo = function() {
 
     if(typeof this.dynamo === 'undefined')
     {
-        var dynamo = new AWS.DynamoDB({
+        var dynamoConfig = {
             endpoint: process.env.DYNAMO_ENDPOINT,
             accessKeyId: process.env.AWS_ACCESS_KEY,
             secretAccessKey: process.env.AWS_SECRET_KEY,
             region: process.env.AWS_REGION
-        });
+        };
+        // this breaks the tests and isn't needed anyway
+        if (process.env.ENVIRONMENT !== "Tests")
+        {
+            // work around for [NetworkingError: write EPROTO] https://github.com/aws/aws-sdk-js/issues/862
+            dynamoConfig.httpOptions = {
+                agent: new https.Agent({
+                    rejectUnauthorized: true,
+                    keepAlive: true,                // workaround part i.
+                    secureProtocol: "TLSv1_method", // workaround part ii.
+                    ciphers: "ALL"                  // workaround part ii.
+                })
+            };
+        }
+        var dynamo = new AWS.DynamoDB(dynamoConfig);
         this.dynamo = new doc.DynamoDB(dynamo);
     }
 
@@ -269,50 +311,79 @@ Tasks.prototype.makeTable = function()
 
     var dynamo = this.getDynamo(),
         params = {
-        TableName: this.getDbTableName(),
-        AttributeDefinitions: [
-            {AttributeName: 'id',       AttributeType: 'S'},
-            {AttributeName: 'ts',       AttributeType: 'N'},
-            {AttributeName: 'status',   AttributeType: 'N'},
-            {AttributeName: 'refId',    AttributeType: 'S'}
-        ],
-        KeySchema: [
-            { AttributeName: 'id',    KeyType: 'HASH' }
-        ],
-        ProvisionedThroughput: {
-            ReadCapacityUnits: 5,
-            WriteCapacityUnits: 10
-        },
-        GlobalSecondaryIndexes: [
-            {
-                IndexName: 'status-ts-index',
-                KeySchema: [
-                    {AttributeName: 'status',   KeyType: 'HASH'},
-                    {AttributeName: 'ts',       KeyType: 'RANGE'}
-                ],
-                Projection: {
-                    ProjectionType:'ALL'
-                },
-                ProvisionedThroughput: {
-                    ReadCapacityUnits: 5,
-                    WriteCapacityUnits: 10
-                }
+            TableName: this.getDbTableName(),
+            AttributeDefinitions: [
+                {AttributeName: 'id',       AttributeType: 'S'},
+                {AttributeName: 'ts',       AttributeType: 'N'},
+                {AttributeName: 'status',   AttributeType: 'N'},
+                {AttributeName: 'refId',    AttributeType: 'S'},
+                {AttributeName: 'clientId', AttributeType: 'S'}
+            ],
+            KeySchema: [
+                { AttributeName: 'id',    KeyType: 'HASH' }
+            ],
+            ProvisionedThroughput: {
+                ReadCapacityUnits: 5,
+                WriteCapacityUnits: 10
             },
-            {
-                IndexName: 'refId-index',
-                KeySchema: [
-                    {AttributeName: 'refId',   KeyType: 'HASH'}
-                ],
-                Projection: {
-                    ProjectionType:'ALL'
+            GlobalSecondaryIndexes: [
+                {
+                    IndexName: 'status-ts-index',
+                    KeySchema: [
+                        {AttributeName: 'status',   KeyType: 'HASH'},
+                        {AttributeName: 'ts',       KeyType: 'RANGE'}
+                    ],
+                    Projection: {
+                        ProjectionType:'ALL'
+                    },
+                    ProvisionedThroughput: {
+                        ReadCapacityUnits: 5,
+                        WriteCapacityUnits: 10
+                    }
                 },
-                ProvisionedThroughput: {
-                    ReadCapacityUnits: 5,
-                    WriteCapacityUnits: 10
+                {
+                    IndexName: 'refId-index',
+                    KeySchema: [
+                        {AttributeName: 'refId',   KeyType: 'HASH'}
+                    ],
+                    Projection: {
+                        ProjectionType:'ALL'
+                    },
+                    ProvisionedThroughput: {
+                        ReadCapacityUnits: 5,
+                        WriteCapacityUnits: 10
+                    }
+                },
+                {
+                    IndexName: 'clientId-index',
+                    KeySchema: [
+                        {AttributeName: 'clientId',   KeyType: 'HASH'}
+                    ],
+                    Projection: {
+                        ProjectionType:'ALL'
+                    },
+                    ProvisionedThroughput: {
+                        ReadCapacityUnits: 10,
+                        WriteCapacityUnits: 5
+                    }
+                },
+                {
+                    IndexName: 'status-clientId-index',
+                    KeySchema: [
+                        {AttributeName: 'clientId',   KeyType: 'HASH'},
+                        {AttributeName: 'status',     KeyType: 'RANGE'}
+
+                    ],
+                    Projection: {
+                        ProjectionType:'ALL'
+                    },
+                    ProvisionedThroughput: {
+                        ReadCapacityUnits: 10,
+                        WriteCapacityUnits: 5
+                    }
                 }
-            }
-        ]
-    };
+            ]
+        };
 
     dynamo.createTable(params, function(err, data) {
         if (err)
