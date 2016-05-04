@@ -24,7 +24,10 @@ var runner      = require('./core/runner');
 process.on('uncaughtException',function(err){
     try
     {
-        logger.logError('[INDEX] uncaughtException: '+err.message);
+        if (err.message.indexOf('ECONNRESET') == -1)
+        {
+            logger.logError('[INDEX] uncaughtException: ' + err.message);
+        }
     }
     catch (e)
     {

@@ -9,7 +9,10 @@ var seekInterval = ((process.env.RUN_INTERVAL || 5) * 1000); // 5 second default
 process.on('uncaughtException',function(err){
     try
     {
-        logger.logError('[RUNNER] uncaughtException: '+err.message);
+        if (err.message.indexOf('ECONNRESET') == -1)
+        {
+            logger.logError('[RUNNER] uncaughtException: '+err.message);
+        }
     }
     catch (e)
     {
