@@ -284,7 +284,6 @@ Tasks.prototype.getDynamo = function() {
             dynamoConfig.httpOptions = {
                 agent: new https.Agent({
                     rejectUnauthorized: true,
-                    keepAlive: true,                // workaround part i.
                     secureProtocol: "TLSv1_method", // workaround part ii.
                     ciphers: "ALL"                  // workaround part ii.
                 })
