@@ -6,17 +6,6 @@ var fork        = require('child_process').fork;
 
 var seekInterval = ((process.env.RUN_INTERVAL || 5) * 1000); // 5 second default
 
-process.on('uncaughtException',function(err){
-    try
-    {
-        logger.logError('[RUNNER] uncaughtException: '+err.message);
-    }
-    catch (e)
-    {
-        console.error('[RUNNER] uncaughtException Exception '+e);
-    }
-});
-
 function Runner()
 {
 

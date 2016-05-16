@@ -1,6 +1,6 @@
 {
   "name": "snooze",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "it does stuff later",
   "main": "snooze.lambda.js",
   "scripts": {
@@ -28,6 +28,7 @@
     "https": "^1.0.0",
     "jsonwebtoken": "^5.7.0",
     "node-elk-logger": "^0.1.5",
+    "sasquatcha": "^0.1.0",
     "statsd-client": "^0.2.1",
     "underscore": "^1.8.3"
   },
