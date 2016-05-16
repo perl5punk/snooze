@@ -427,7 +427,6 @@ child.start();
 
 sqsWatcher.start(function(err, queueData, event, onComplete){
 
-    console.log('sqsProcessor callback received message from '+event.name, queueData);
     if (err)
     {
         logger.logError('sqsProcessor Error: '+err);
@@ -439,6 +438,7 @@ sqsWatcher.start(function(err, queueData, event, onComplete){
         if (event.name.indexOf('ReminderCancellations') != -1 && sqsMessage.itemType == "open")
         {
             var reminderTaskId = 'rem'+sqsMessage.id.split(':')[1];
+            logger.logInfo('Fetching Reminder Task by RefId to Cancel '+reminderTaskId);
             tasks.getTaskByRef(reminderTaskId,function(err,task){
                 if (!err && task.Count > 0)
                 {
@@ -450,7 +450,10 @@ sqsWatcher.start(function(err, queueData, event, onComplete){
                             !err && logger.logInfo('Canceled Reminder for Opened Email: '+taskDetail.id,taskDetail);
                             onComplete(err,null);
                         });
+                        return;
                     }
+                    logger.logInfo('Fetching Reminder Task by RefId to Cancel '+reminderTaskId,taskDetail);
+                    onComplete('No Task detail, unable to update status for '+taskDetail.id, null);
                 }
                 else
                 {
@@ -466,6 +469,10 @@ sqsWatcher.start(function(err, queueData, event, onComplete){
                     onComplete(err, null);
                 }
             });
+        }
+        else
+        {
+            onComplete(null, null);
         }
     }
 });
