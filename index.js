@@ -20,7 +20,7 @@ var runner          = require('./core/runner');
 
 var sqsProcessorOptions = {
     tableName: process.env.ENVIRONMENT + '_SnoozeSQSWatcher',
-    logger: function(message,payload,type) { logger.log(message,type,payload); },
+    logger: function(message,payload,type) { logger.log(message,type.toUpperCase(),payload); },
     maxNumberOfMessages: 5,
     concurrency: 2,
     useLegacyDynamo: process.env.TEST_RUNNER
