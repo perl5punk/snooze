@@ -77,7 +77,7 @@ process.on('message', function(task){
                 }
                 else
                 {
-                    process.send({ result: 'Published SNS Message; '+data });
+                    process.send({ result: 'Published SNS Message; '+JSON.stringify(data) });
                     process.exit(0);
                 }
             });
