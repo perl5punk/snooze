@@ -200,6 +200,7 @@ app.put('/cancel/:id', function (req, res, next) {
                     }
                     else
                     {
+                        sdc.incrMetric('taskCanceled');
                         returnSuccessJson(res, {task: data.Attributes, success: true, message: 'Task Status Updated'});
                     }
                 });
@@ -277,6 +278,35 @@ app.get('/tasks/:clientid', function(req, res, next) {
                 else
                 {
                     returnSuccessJson(res, {tasks : data.Items, success: true, message: 'Tasks Found'});
+                }
+            }
+            catch(e)
+            {
+                returnErrorJson(res, e.message);
+            }
+        }
+    });
+
+});
+
+app.get('/tasksByStatus/:statuscode', function(req, res, next) {
+
+    tasks.getTasksByStatus(req.params.statuscode, function(err, data) {
+        if (err)
+        {
+            returnErrorJson(res, 'Error retrieving tasks; '+err);
+        }
+        else
+        {
+            try
+            {
+                if (data.Items.length === 0)
+                {
+                    returnNotFound(res, 'No tasks for that code');
+                }
+                else
+                {
+                    returnSuccessJson(res, {tasks : data.Items, success: true, message: data.Items.length+' Tasks Found'});
                 }
             }
             catch(e)

@@ -159,18 +159,21 @@ Tasks.prototype.getTasks = function(queryOptions, callback)
 
 };
 
-Tasks.prototype.getTasksToRun = function(callback)
+Tasks.prototype.getTasksByStatus = function(statusCode,callback)
 {
-
     var nowTs = Math.floor(Date.now()/1000);
     this.getTasks({
         IndexName: 'status-ts-index',
         KeyConditions: [
             this.dynamo.Condition("ts", "LE", nowTs),
-            this.dynamo.Condition("status", "EQ", this.QUEUED)
+            this.dynamo.Condition("status", "EQ", parseInt(statusCode))
         ]
     },callback);
+};
 
+Tasks.prototype.getTasksToRun = function(callback)
+{
+    this.getTasksByStatus(this.QUEUED,callback);
 };
 
 Tasks.prototype.getClientTasksByStatus = function (status, clientId, callback)
